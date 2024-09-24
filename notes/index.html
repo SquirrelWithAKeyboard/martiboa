@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit and Save Page</title>
+</head>
+<body>
+    <h1>Edit this content:</h1>
+    <textarea id="editor" rows="10" cols="50"></textarea>
+    <br>
+    <button onclick="saveContent()">Save</button>
+
+    <script>
+        // Fetch the content when the page loads
+        window.onload = function() {
+            fetch('/content')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('editor').value = data.content;
+            });
+        };
+
+        // Save the content when the save button is clicked
+        function saveContent() {
+            const content = document.getElementById('editor').value;
+            fetch('/content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: content })
+            }).then(response => response.json())
+            .then(data => {
+                alert('Content saved!');
+            });
+        }
+    </script>
+</body>
+</html>
