@@ -93,60 +93,170 @@
         .note button:hover {
             background-color: #d32f2f;
         }
+
+        /* Login & Signup Styles */
+        .auth-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Notes App</h1>
-        <textarea id="noteInput" placeholder="Type your note here..."></textarea>
-        <button id="addNoteBtn">Add Note</button>
+
+        <!-- Authentication Section -->
+        <div class="auth-container" id="authContainer">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginBtn">Login</button>
+            <button id="signupBtn">Sign Up</button>
+            <button id="logoutBtn" style="display: none;">Logout</button>
+        </div>
+
+        <!-- Notes Section (only visible after login) -->
+        <textarea id="noteInput" placeholder="Type your note here..." style="display: none;"></textarea>
+        <button id="addNoteBtn" style="display: none;">Add Note</button>
         <div class="notes" id="notesContainer"></div>
     </div>
 
-    <script>
-        const addNoteBtn = document.getElementById('addNoteBtn');
-        const noteInput = document.getElementById('noteInput');
-        const notesContainer = document.getElementById('notesContainer');
+    <!-- Firebase SDKs -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-        // Load notes from LocalStorage
-        function loadNotes() {
-            const notes = JSON.parse(localStorage.getItem('notes')) || [];
-            notesContainer.innerHTML = '';
-            notes.forEach((note, index) => {
-                const noteElement = document.createElement('div');
-                noteElement.classList.add('note');
-                noteElement.innerHTML = `
-                    <p>${note}</p>
-                    <button onclick="deleteNote(${index})">Delete</button>
-                `;
-                notesContainer.appendChild(noteElement);
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyD70HGwDYe7uB4sehvsRurHJIQ-iMZIKcU",
+        authDomain: "martiboa-notes.firebaseapp.com",
+        projectId: "martiboa-notes",
+        storageBucket: "martiboa-notes.appspot.com",
+        messagingSenderId: "736841312548",
+        appId: "1:736841312548:web:902a803e7af05149dc2bb1",
+        measurementId: "G-0EZ39H6E4R"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth();
+      const db = getFirestore();
+
+      // Elements from the HTML
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const noteInput = document.getElementById('noteInput');
+      const addNoteBtn = document.getElementById('addNoteBtn');
+      const notesContainer = document.getElementById('notesContainer');
+      let userId = null;
+
+      // Sign up new users
+      signupBtn.addEventListener('click', async () => {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          userId = userCredential.user.uid;
+          alert('Sign up successful');
+          toggleAuthState(true);
+          loadNotes();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      // Log in existing users
+      loginBtn.addEventListener('click', async () => {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          userId = userCredential.user.uid;
+          alert('Login successful');
+          toggleAuthState(true);
+          loadNotes();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      // Log out the user
+      logoutBtn.addEventListener('click', async () => {
+        await signOut(auth);
+        userId = null;
+        toggleAuthState(false);
+        alert('Logged out');
+        notesContainer.innerHTML = ''; // Clear notes on logout
+      });
+
+      // Toggle login/logout state
+      function toggleAuthState(isLoggedIn) {
+        if (isLoggedIn) {
+          document.getElementById('authContainer').style.display = 'none';
+          noteInput.style.display = 'block';
+          addNoteBtn.style.display = 'block';
+          logoutBtn.style.display = 'block';
+        } else {
+          document.getElementById('authContainer').style.display = 'block';
+          noteInput.style.display = 'none';
+          addNoteBtn.style.display = 'none';
+          logoutBtn.style.display = 'none';
+        }
+      }
+
+      // Add new note
+      addNoteBtn.addEventListener('click', async () => {
+        const noteText = noteInput.value.trim();
+        if (noteText && userId) {
+          try {
+            await addDoc(collection(db, 'notes'), {
+              userId: userId,
+              text: noteText
             });
-        }
-
-        // Save notes to LocalStorage
-        function saveNote() {
-            const notes = JSON.parse(localStorage.getItem('notes')) || [];
-            const noteText = noteInput.value.trim();
-            if (noteText) {
-                notes.push(noteText);
-                localStorage.setItem('notes', JSON.stringify(notes));
-                noteInput.value = ''; // Clear the textarea
-                loadNotes();
-            }
-        }
-
-        // Delete a note
-        function deleteNote(index) {
-            const notes = JSON.parse(localStorage.getItem('notes')) || [];
-            notes.splice(index, 1);
-            localStorage.setItem('notes', JSON.stringify(notes));
+            noteInput.value = ''; // Clear input field
             loadNotes();
+          } catch (error) {
+            alert('Error adding note: ' + error.message);
+          }
         }
+      });
 
-        addNoteBtn.addEventListener('click', saveNote);
+      // Load user's notes from Firestore
+      async function loadNotes() {
+        if (userId) {
+          notesContainer.innerHTML = ''; // Clear existing notes
+          const q = query(collection(db, 'notes'), where('userId', '==', userId));
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            const note = doc.data().text;
+            const noteElement = document.createElement('div');
+            noteElement.classList.add('note');
+            noteElement.innerHTML = `
+              <p>${note}</p>
+              <button onclick="deleteNote('${doc.id}')">Delete</button>
+            `;
+            notesContainer.appendChild(noteElement);
+          });
+        }
+      }
 
-        // Load notes on page load
+      // Delete a note
+      async function deleteNote(noteId) {
+        await deleteDoc(doc(db, 'notes', noteId));
         loadNotes();
+      }
     </script>
 </body>
 </html>
