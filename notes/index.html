@@ -3,38 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit and Save Page</title>
+    <title>Notes App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            background-color: #5c6bc0;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3949ab;
+        }
+
+        .notes {
+            margin-top: 20px;
+        }
+
+        .note {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .note p {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .note button {
+            width: auto;
+            padding: 5px;
+            background-color: #e57373;
+        }
+
+        .note button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
 </head>
 <body>
-    <h1>Edit this content:</h1>
-    <textarea id="editor" rows="10" cols="50"></textarea>
-    <br>
-    <button onclick="saveContent()">Save</button>
+    <div class="container">
+        <h1>Notes App</h1>
+        <textarea id="noteInput" placeholder="Type your note here..."></textarea>
+        <button id="addNoteBtn">Add Note</button>
+        <div class="notes" id="notesContainer"></div>
+    </div>
 
     <script>
-        // Fetch the content when the page loads
-        window.onload = function() {
-            fetch('/content')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('editor').value = data.content;
-            });
-        };
+        const addNoteBtn = document.getElementById('addNoteBtn');
+        const noteInput = document.getElementById('noteInput');
+        const notesContainer = document.getElementById('notesContainer');
 
-        // Save the content when the save button is clicked
-        function saveContent() {
-            const content = document.getElementById('editor').value;
-            fetch('/content', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ content: content })
-            }).then(response => response.json())
-            .then(data => {
-                alert('Content saved!');
+        // Load notes from LocalStorage
+        function loadNotes() {
+            const notes = JSON.parse(localStorage.getItem('notes')) || [];
+            notesContainer.innerHTML = '';
+            notes.forEach((note, index) => {
+                const noteElement = document.createElement('div');
+                noteElement.classList.add('note');
+                noteElement.innerHTML = `
+                    <p>${note}</p>
+                    <button onclick="deleteNote(${index})">Delete</button>
+                `;
+                notesContainer.appendChild(noteElement);
             });
         }
+
+        // Save notes to LocalStorage
+        function saveNote() {
+            const notes = JSON.parse(localStorage.getItem('notes')) || [];
+            const noteText = noteInput.value.trim();
+            if (noteText) {
+                notes.push(noteText);
+                localStorage.setItem('notes', JSON.stringify(notes));
+                noteInput.value = ''; // Clear the textarea
+                loadNotes();
+            }
+        }
+
+        // Delete a note
+        function deleteNote(index) {
+            const notes = JSON.parse(localStorage.getItem('notes')) || [];
+            notes.splice(index, 1);
+            localStorage.setItem('notes', JSON.stringify(notes));
+            loadNotes();
+        }
+
+        addNoteBtn.addEventListener('click', saveNote);
+
+        // Load notes on page load
+        loadNotes();
     </script>
 </body>
 </html>
