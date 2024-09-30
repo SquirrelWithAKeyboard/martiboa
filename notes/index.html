@@ -76,7 +76,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            white-space: pre-line; /* For new lines in note text */
+            white-space: pre-line;
             cursor: grab;
         }
 
@@ -85,7 +85,6 @@
         }
 
         .note button {
-            width: auto;
             padding: 5px;
             background-color: #e57373;
             border: none;
@@ -254,13 +253,13 @@
             `;
             notesContainer.appendChild(noteElement);
 
-            // Add drag and drop functionality
-            noteElement.addEventListener('dragstart', (e) => {
+            // Drag and drop functionality
+            noteElement.addEventListener('dragstart', () => {
               draggedNote = noteElement;
               setTimeout(() => noteElement.classList.add('dragging'), 0);
             });
 
-            noteElement.addEventListener('dragend', (e) => {
+            noteElement.addEventListener('dragend', () => {
               noteElement.classList.remove('dragging');
               draggedNote = null;
             });
@@ -302,3 +301,4 @@
     </script>
 </body>
 </html>
+
