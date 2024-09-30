@@ -133,7 +133,7 @@
       // Import the functions you need from the SDKs you need
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
       // Your web app's Firebase configuration
       const firebaseConfig = {
@@ -161,6 +161,7 @@
       const addNoteBtn = document.getElementById('addNoteBtn');
       const notesContainer = document.getElementById('notesContainer');
       let userId = null;
+      let currentEditNoteId = null;
 
       // Sign up new users
       signupBtn.addEventListener('click', async () => {
@@ -216,19 +217,29 @@
         }
       }
 
-      // Add new note
+      // Add new note or update existing one
       addNoteBtn.addEventListener('click', async () => {
         const noteText = noteInput.value.trim();
         if (noteText && userId) {
           try {
-            await addDoc(collection(db, 'notes'), {
-              userId: userId,
-              text: noteText
-            });
+            if (currentEditNoteId) {
+              // Update note
+              await updateDoc(doc(db, 'notes', currentEditNoteId), {
+                text: noteText
+              });
+              currentEditNoteId = null;
+              addNoteBtn.textContent = 'Add Note'; // Reset button to "Add Note"
+            } else {
+              // Add new note
+              await addDoc(collection(db, 'notes'), {
+                userId: userId,
+                text: noteText
+              });
+            }
             noteInput.value = ''; // Clear input field
             loadNotes();
           } catch (error) {
-            alert('Error adding note: ' + error.message);
+            alert('Error adding/updating note: ' + error.message);
           }
         }
       });
@@ -246,12 +257,20 @@
             noteElement.classList.add('note');
             noteElement.innerHTML = `
               <p>${noteText}</p>
+              <button class="edit-btn" data-id="${doc.id}">Edit</button>
               <button class="delete-btn" data-id="${doc.id}">Delete</button>
             `;
             notesContainer.appendChild(noteElement);
           });
 
-          // Attach event listeners to delete buttons
+          // Attach event listeners to edit and delete buttons
+          document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+              const noteId = e.target.getAttribute('data-id');
+              editNote(noteId);
+            });
+          });
+
           document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', (e) => {
               const noteId = e.target.getAttribute('data-id');
@@ -261,16 +280,28 @@
         }
       }
 
+      // Edit a note
+      async function editNote(noteId) {
+        try {
+          const noteDoc = await doc(db, 'notes', noteId);
+          const noteData = await getDoc(noteDoc);
+          if (noteData.exists()) {
+            noteInput.value = noteData.data().text; // Load note into text area
+            currentEditNoteId = noteId; // Set the current note to be edited
+            addNoteBtn.textContent = 'Update Note'; // Change button to "Update Note"
+          }
+        } catch (error) {
+          alert('Error loading note for edit: ' + error.message);
+        }
+      }
+
       // Delete a note
       async function deleteNote(noteId) {
-        const confirmDelete = confirm('Are you sure you want to delete this note?');
-        if (confirmDelete) {
-          try {
-            await deleteDoc(doc(db, 'notes', noteId));
-            loadNotes(); // Refresh notes after deletion
-          } catch (error) {
-            alert('Error deleting note: ' + error.message);
-          }
+        try {
+          await deleteDoc(doc(db, 'notes', noteId));
+          loadNotes(); // Refresh notes after deletion
+        } catch (error) {
+          alert('Error deleting note: ' + error.message);
         }
       }
     </script>
