@@ -76,14 +76,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: grab;
         }
 
         .note p {
             margin: 0;
             font-size: 14px;
             color: #333;
-            white-space: pre-line; /* This will respect line breaks in note text */
         }
 
         .note button {
@@ -135,7 +133,7 @@
       // Import the functions you need from the SDKs you need
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
       // Your web app's Firebase configuration
       const firebaseConfig = {
@@ -163,7 +161,6 @@
       const addNoteBtn = document.getElementById('addNoteBtn');
       const notesContainer = document.getElementById('notesContainer');
       let userId = null;
-      let draggedNoteId = null;
 
       // Sign up new users
       signupBtn.addEventListener('click', async () => {
@@ -246,43 +243,30 @@
             const note = doc.data().text;
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
-            noteElement.setAttribute('draggable', 'true'); // Make draggable
-            noteElement.setAttribute('data-id', doc.id);
             noteElement.innerHTML = `
               <p>${note}</p>
-              <button class="deleteBtn">Delete</button>
+              <button class="delete-btn" data-id="${doc.id}">Delete</button>
             `;
             notesContainer.appendChild(noteElement);
+          });
 
-            // Add drag events
-            noteElement.addEventListener('dragstart', handleDragStart);
-            noteElement.addEventListener('dragover', handleDragOver);
-            noteElement.addEventListener('drop', handleDrop);
-
-            // Add delete button functionality
-            noteElement.querySelector('.deleteBtn').addEventListener('click', async () => {
-              await deleteDoc(doc(db, 'notes', doc.id));
-              loadNotes(); // Refresh notes after deletion
+          // Attach event listeners to delete buttons
+          document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+              const noteId = e.target.getAttribute('data-id');
+              deleteNote(noteId);
             });
           });
         }
       }
 
-      // Drag and Drop handlers
-      function handleDragStart(e) {
-        draggedNoteId = e.target.getAttribute('data-id');
-      }
-
-      function handleDragOver(e) {
-        e.preventDefault(); // Allow drop
-      }
-
-      async function handleDrop(e) {
-        e.preventDefault();
-        const targetNoteId = e.target.closest('.note').getAttribute('data-id');
-        if (draggedNoteId && targetNoteId && draggedNoteId !== targetNoteId) {
-          // Update note order in Firestore (you can add an order field in Firestore to track this)
-          alert(`Reordered notes! (Note IDs: ${draggedNoteId} -> ${targetNoteId})`);
+      // Delete a note
+      async function deleteNote(noteId) {
+        try {
+          await deleteDoc(doc(db, 'notes', noteId));
+          loadNotes(); // Refresh notes after deletion
+        } catch (error) {
+          alert('Error deleting note: ' + error.message);
         }
       }
     </script>
