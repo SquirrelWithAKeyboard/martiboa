@@ -245,18 +245,31 @@
             noteElement.classList.add('note');
             noteElement.innerHTML = `
               <p>${note}</p>
-              <button onclick="deleteNote('${doc.id}')">Delete</button>
+              <button class="delete-btn" data-id="${doc.id}">Delete</button>
             `;
             notesContainer.appendChild(noteElement);
+          });
+
+          // Attach event listeners to delete buttons
+          document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+              const noteId = e.target.getAttribute('data-id');
+              deleteNote(noteId);
+            });
           });
         }
       }
 
       // Delete a note
       async function deleteNote(noteId) {
-        await deleteDoc(doc(db, 'notes', noteId));
-        loadNotes();
+        try {
+          await deleteDoc(doc(db, 'notes', noteId));
+          loadNotes(); // Refresh notes after deletion
+        } catch (error) {
+          alert('Error deleting note: ' + error.message);
+        }
       }
     </script>
 </body>
 </html>
+
