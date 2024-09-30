@@ -240,11 +240,12 @@
           const q = query(collection(db, 'notes'), where('userId', '==', userId));
           const querySnapshot = await getDocs(q);
           querySnapshot.forEach((doc) => {
-            const note = doc.data().text;
+            // Replace newlines with <br>
+            const noteText = doc.data().text.replace(/\n/g, '<br>'); 
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
             noteElement.innerHTML = `
-              <p>${note}</p>
+              <p>${noteText}</p>
               <button class="delete-btn" data-id="${doc.id}">Delete</button>
             `;
             notesContainer.appendChild(noteElement);
@@ -262,11 +263,14 @@
 
       // Delete a note
       async function deleteNote(noteId) {
-        try {
-          await deleteDoc(doc(db, 'notes', noteId));
-          loadNotes(); // Refresh notes after deletion
-        } catch (error) {
-          alert('Error deleting note: ' + error.message);
+        const confirmDelete = confirm('Are you sure you want to delete this note?');
+        if (confirmDelete) {
+          try {
+            await deleteDoc(doc(db, 'notes', noteId));
+            loadNotes(); // Refresh notes after deletion
+          } catch (error) {
+            alert('Error deleting note: ' + error.message);
+          }
         }
       }
     </script>
