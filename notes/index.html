@@ -77,11 +77,6 @@
             justify-content: space-between;
             align-items: center;
             white-space: pre-line;
-            cursor: grab;
-        }
-
-        .note.dragging {
-            opacity: 0.5;
         }
 
         .note button {
@@ -162,7 +157,6 @@
       const addNoteBtn = document.getElementById('addNoteBtn');
       const notesContainer = document.getElementById('notesContainer');
       let userId = null;
-      let draggedNote = null;
 
       // Sign up new users
       signupBtn.addEventListener('click', async () => {
@@ -245,34 +239,12 @@
             const note = doc.data().text;
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
-            noteElement.setAttribute('draggable', 'true');
             noteElement.setAttribute('data-id', doc.id);
             noteElement.innerHTML = `
               <p>${note}</p>
               <button class="deleteBtn">Delete</button>
             `;
             notesContainer.appendChild(noteElement);
-
-            // Drag and drop functionality
-            noteElement.addEventListener('dragstart', () => {
-              draggedNote = noteElement;
-              setTimeout(() => noteElement.classList.add('dragging'), 0);
-            });
-
-            noteElement.addEventListener('dragend', () => {
-              noteElement.classList.remove('dragging');
-              draggedNote = null;
-            });
-
-            noteElement.addEventListener('dragover', (e) => {
-              e.preventDefault();
-              const afterElement = getDragAfterElement(notesContainer, e.clientY);
-              if (afterElement == null) {
-                notesContainer.appendChild(draggedNote);
-              } else {
-                notesContainer.insertBefore(draggedNote, afterElement);
-              }
-            });
 
             // Delete note functionality
             noteElement.querySelector('.deleteBtn').addEventListener('click', async () => {
@@ -283,22 +255,6 @@
           });
         }
       }
-
-      // Helper function to find the correct position for dragging
-      function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.note:not(.dragging)')];
-
-        return draggableElements.reduce((closest, child) => {
-          const box = child.getBoundingClientRect();
-          const offset = y - box.top - box.height / 2;
-          if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-          } else {
-            return closest;
-          }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-      }
     </script>
 </body>
 </html>
-
