@@ -84,13 +84,24 @@
             color: #333;
         }
 
-        .note button {
+        .note .edit-btn {
             width: auto;
             padding: 5px;
-            background-color: #e57373;
+            background-color: #81c784; /* Green */
+            margin-right: 5px;
         }
 
-        .note button:hover {
+        .note .edit-btn:hover {
+            background-color: #66bb6a;
+        }
+
+        .note .delete-btn {
+            width: auto;
+            padding: 5px;
+            background-color: #e57373; /* Red */
+        }
+
+        .note .delete-btn:hover {
             background-color: #d32f2f;
         }
 
@@ -133,7 +144,7 @@
       // Import the functions you need from the SDKs you need
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
       // Your web app's Firebase configuration
       const firebaseConfig = {
@@ -250,13 +261,12 @@
           notesContainer.innerHTML = ''; // Clear existing notes
           const q = query(collection(db, 'notes'), where('userId', '==', userId));
           const querySnapshot = await getDocs(q);
+
           querySnapshot.forEach((doc) => {
-            // Replace newlines with <br>
-            const noteText = doc.data().text.replace(/\n/g, '<br>'); 
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
             noteElement.innerHTML = `
-              <p>${noteText}</p>
+              <p>${doc.data().text}</p>
               <button class="edit-btn" data-id="${doc.id}">Edit</button>
               <button class="delete-btn" data-id="${doc.id}">Delete</button>
             `;
@@ -283,7 +293,7 @@
       // Edit a note
       async function editNote(noteId) {
         try {
-          const noteDoc = await doc(db, 'notes', noteId);
+          const noteDoc = doc(db, 'notes', noteId);
           const noteData = await getDoc(noteDoc);
           if (noteData.exists()) {
             noteInput.value = noteData.data().text; // Load note into text area
