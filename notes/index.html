@@ -76,8 +76,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: grab;
             white-space: pre-line; /* For new lines in note text */
+            cursor: grab;
         }
 
         .note.dragging {
@@ -88,6 +88,8 @@
             width: auto;
             padding: 5px;
             background-color: #e57373;
+            border: none;
+            border-radius: 4px;
         }
 
         .note button:hover {
@@ -161,7 +163,7 @@
       const addNoteBtn = document.getElementById('addNoteBtn');
       const notesContainer = document.getElementById('notesContainer');
       let userId = null;
-      let draggedNote = null; // Variable for the dragged note
+      let draggedNote = null;
 
       // Sign up new users
       signupBtn.addEventListener('click', async () => {
@@ -244,7 +246,7 @@
             const note = doc.data().text;
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
-            noteElement.setAttribute('draggable', 'true'); // Make draggable
+            noteElement.setAttribute('draggable', 'true');
             noteElement.setAttribute('data-id', doc.id);
             noteElement.innerHTML = `
               <p>${note}</p>
@@ -253,32 +255,50 @@
             notesContainer.appendChild(noteElement);
 
             // Add drag and drop functionality
-            noteElement.addEventListener('dragstart', () => {
-              draggedNote = noteElement; // Store the dragged note element
-              noteElement.classList.add('dragging');
+            noteElement.addEventListener('dragstart', (e) => {
+              draggedNote = noteElement;
+              setTimeout(() => noteElement.classList.add('dragging'), 0);
             });
 
-            noteElement.addEventListener('dragend', () => {
+            noteElement.addEventListener('dragend', (e) => {
               noteElement.classList.remove('dragging');
+              draggedNote = null;
             });
 
             noteElement.addEventListener('dragover', (e) => {
               e.preventDefault();
-              const draggingOverNote = noteElement;
-              if (draggedNote !== draggingOverNote) {
-                notesContainer.insertBefore(draggedNote, draggingOverNote);
+              const afterElement = getDragAfterElement(notesContainer, e.clientY);
+              if (afterElement == null) {
+                notesContainer.appendChild(draggedNote);
+              } else {
+                notesContainer.insertBefore(draggedNote, afterElement);
               }
             });
 
-            // Add delete button functionality
+            // Delete note functionality
             noteElement.querySelector('.deleteBtn').addEventListener('click', async () => {
-              await deleteDoc(doc(db, 'notes', doc.id));
-              loadNotes(); // Refresh notes after deletion
+              const noteId = noteElement.getAttribute('data-id');
+              await deleteDoc(doc(db, 'notes', noteId));
+              loadNotes();
             });
           });
         }
       }
 
+      // Helper function to find the correct position for dragging
+      function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.note:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+      }
     </script>
 </body>
 </html>
