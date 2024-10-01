@@ -263,48 +263,50 @@
       });
 
       // Load user's notes from Firestore
-      async function loadNotes() {
-        if (userId) {
-          notesContainer.innerHTML = ''; // Clear existing notes
-          const q = query(collection(db, 'notes'), where('userId', '==', userId));
-          const querySnapshot = await getDocs(q);
-          querySnapshot.forEach((doc) => {
+async function loadNotes() {
+    if (userId) {
+        notesContainer.innerHTML = ''; // Clear existing notes
+        const q = query(collection(db, 'notes'), where('userId', '==', userId));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            const noteTextWithLineBreaks = doc.data().text.replace(/\n/g, '<br>'); // Replace \n with <br>
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
             noteElement.innerHTML = `
-              <p>${doc.data().text}</p>
+              <p>${noteTextWithLineBreaks}</p>
               <div class="note-buttons">
                 <button class="edit-btn" data-id="${doc.id}">Edit</button>
                 <button class="delete-btn" data-id="${doc.id}">Delete</button>
               </div>
             `;
             notesContainer.appendChild(noteElement);
-          });
+        });
 
-          // Add event listeners for edit and delete buttons
-          document.querySelectorAll('.delete-btn').forEach((button) => {
+        // Add event listeners for edit and delete buttons
+        document.querySelectorAll('.delete-btn').forEach((button) => {
             button.addEventListener('click', async (e) => {
-              const noteId = e.target.dataset.id;
-              await deleteDoc(doc(db, 'notes', noteId));
-              loadNotes(); // Refresh notes after deletion
+                const noteId = e.target.dataset.id;
+                await deleteDoc(doc(db, 'notes', noteId));
+                loadNotes(); // Refresh notes after deletion
             });
-          });
+        });
 
-          document.querySelectorAll('.edit-btn').forEach((button) => {
+        document.querySelectorAll('.edit-btn').forEach((button) => {
             button.addEventListener('click', async (e) => {
-              const noteId = e.target.dataset.id;
-              const noteDoc = await getDoc(doc(db, 'notes', noteId));
-              if (noteDoc.exists()) {
-                noteInput.value = noteDoc.data().text; // Populate textarea with note text
-                currentEditNoteId = noteId; // Track the note being edited
-                addNoteBtn.textContent = 'Update Note'; // Change button text to "Update Note"
-              } else {
-                alert('Error loading note for edit.');
-              }
+                const noteId = e.target.dataset.id;
+                const noteDoc = await getDoc(doc(db, 'notes', noteId));
+                if (noteDoc.exists()) {
+                    noteInput.value = noteDoc.data().text; // Populate textarea with note text
+                    currentEditNoteId = noteId; // Track the note being edited
+                    addNoteBtn.textContent = 'Update Note'; // Change button text to "Update Note"
+                } else {
+                    alert('Error loading note for edit.');
+                }
             });
-          });
-        }
-      }
+        });
+    }
+}
+
     </script>
 </body>
 </html>
