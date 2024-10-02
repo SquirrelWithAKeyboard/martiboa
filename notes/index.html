@@ -17,8 +17,9 @@
             color: #333;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Start aligning from the top */
             height: 100vh;
+            padding: 20px;
         }
 
         .container {
@@ -28,20 +29,24 @@
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Full height for layout */
+            justify-content: flex-start;
+            overflow: hidden; /* Prevent content overflow */
         }
 
-       h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 24px;
-    padding: 10px;
-    overflow: visible;
-    white-space: normal; /* Allow text to wrap normally */
-    display: block; /* Ensure the element behaves like a block-level element */
-}
-
-
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px;
+            padding: 10px;
+            background-color: #fff;
+            position: sticky; /* Ensure title stays visible */
+            top: 0;
+            z-index: 1000; /* Make sure it stays on top */
+        }
 
         textarea {
             width: 100%;
@@ -72,6 +77,8 @@
 
         .notes {
             margin-top: 20px;
+            max-height: 400px; /* Adjust as needed */
+            overflow-y: auto; /* Enable vertical scrolling */
         }
 
         .note {
@@ -89,33 +96,29 @@
             margin: 0;
             font-size: 14px;
             color: #333;
-            flex-grow: 1;
+            word-wrap: break-word; /* Prevent long words from overflowing */
         }
 
         .note-buttons {
             display: flex;
-            gap: 5px; /* Small gap between the buttons */
+            gap: 10px; /* Add space between buttons */
         }
 
-        .note .edit-btn, .note .delete-btn {
+        .note button {
             width: auto;
             padding: 5px;
-            border-radius: 4px;
+            background-color: #e57373;
         }
 
-        .note .edit-btn {
-            background-color: #81c784; /* Green */
+        .edit-btn {
+            background-color: #4caf50;
         }
 
-        .note .edit-btn:hover {
-            background-color: #66bb6a;
+        .edit-btn:hover {
+            background-color: #388e3c;
         }
 
-        .note .delete-btn {
-            background-color: #e57373; /* Red */
-        }
-
-        .note .delete-btn:hover {
+        .note button:hover {
             background-color: #d32f2f;
         }
 
@@ -222,7 +225,6 @@
       logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
         userId = null;
-        currentEditNoteId = null;
         toggleAuthState(false);
         alert('Logged out');
         notesContainer.innerHTML = ''; // Clear notes on logout
@@ -243,77 +245,67 @@
         }
       }
 
-      // Add or Update note
+      // Add or update note
       addNoteBtn.addEventListener('click', async () => {
         const noteText = noteInput.value.trim();
         if (noteText && userId) {
           try {
             if (currentEditNoteId) {
-              // Update existing note
-              const noteDoc = doc(db, 'notes', currentEditNoteId);
-              await updateDoc(noteDoc, { text: noteText });
-              addNoteBtn.textContent = 'Add Note'; // Change button back to "Add Note"
-              currentEditNoteId = null; // Reset after editing
+              await updateDoc(doc(db, 'notes', currentEditNoteId), { text: noteText });
+              currentEditNoteId = null;
+              addNoteBtn.textContent = 'Add Note';
             } else {
-              // Add new note
-              await addDoc(collection(db, 'notes'), {
-                userId: userId,
-                text: noteText
-              });
+              await addDoc(collection(db, 'notes'), { userId: userId, text: noteText });
             }
             noteInput.value = ''; // Clear input field
             loadNotes();
           } catch (error) {
-            alert('Error adding or updating note: ' + error.message);
+            alert('Error adding note: ' + error.message);
           }
         }
       });
 
       // Load user's notes from Firestore
-async function loadNotes() {
-    if (userId) {
-        notesContainer.innerHTML = ''; // Clear existing notes
-        const q = query(collection(db, 'notes'), where('userId', '==', userId));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-            const noteTextWithLineBreaks = doc.data().text.replace(/\n/g, '<br>'); // Replace \n with <br>
+      async function loadNotes() {
+        if (userId) {
+          const q = query(collection(db, 'notes'), where('userId', '==', userId));
+          const querySnapshot = await getDocs(q);
+          notesContainer.innerHTML = ''; // Clear existing notes
+          querySnapshot.forEach((doc) => {
+            const note = doc.data();
+            const noteId = doc.id;
             const noteElement = document.createElement('div');
-            noteElement.classList.add('note');
+            noteElement.className = 'note';
             noteElement.innerHTML = `
-              <p>${noteTextWithLineBreaks}</p>
+              <p>${note.text.replace(/\n/g, '<br>')}</p>
               <div class="note-buttons">
-                <button class="edit-btn" data-id="${doc.id}">Edit</button>
-                <button class="delete-btn" data-id="${doc.id}">Delete</button>
+                <button class="edit-btn" onclick="editNote('${noteId}')">Edit</button>
+                <button onclick="deleteNote('${noteId}')">Delete</button>
               </div>
             `;
             notesContainer.appendChild(noteElement);
-        });
+          });
+        }
+      }
 
-        // Add event listeners for edit and delete buttons
-        document.querySelectorAll('.delete-btn').forEach((button) => {
-            button.addEventListener('click', async (e) => {
-                const noteId = e.target.dataset.id;
-                await deleteDoc(doc(db, 'notes', noteId));
-                loadNotes(); // Refresh notes after deletion
-            });
-        });
+      // Edit note
+      window.editNote = async function (noteId) {
+        const docSnap = await getDoc(doc(db, 'notes', noteId));
+        if (docSnap.exists()) {
+          const note = docSnap.data();
+          noteInput.value = note.text;
+          currentEditNoteId = noteId;
+          addNoteBtn.textContent = 'Update Note';
+        } else {
+          alert('Note not found');
+        }
+      };
 
-        document.querySelectorAll('.edit-btn').forEach((button) => {
-            button.addEventListener('click', async (e) => {
-                const noteId = e.target.dataset.id;
-                const noteDoc = await getDoc(doc(db, 'notes', noteId));
-                if (noteDoc.exists()) {
-                    noteInput.value = noteDoc.data().text; // Populate textarea with note text
-                    currentEditNoteId = noteId; // Track the note being edited
-                    addNoteBtn.textContent = 'Update Note'; // Change button text to "Update Note"
-                } else {
-                    alert('Error loading note for edit.');
-                }
-            });
-        });
-    }
-}
-
+      // Delete note
+      window.deleteNote = async function (noteId) {
+        await deleteDoc(doc(db, 'notes', noteId));
+        loadNotes();
+      };
     </script>
 </body>
 </html>
