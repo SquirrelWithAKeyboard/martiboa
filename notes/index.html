@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes App</title>
     <style>
+        /* Style definitions remain the same */
         * {
             margin: 0;
             padding: 0;
@@ -239,7 +240,7 @@
         if (noteText && userId) {
           if (currentEditNoteId) {
             const noteRef = doc(db, 'notes', currentEditNoteId);
-            await noteRef.update({
+            await updateDoc(noteRef, {
               text: noteText
             });
             currentEditNoteId = null;
@@ -268,11 +269,17 @@
             noteElement.innerHTML = `
               <p>${note.text.replace(/\n/g, '<br>')}</p>
               <div class="note-buttons">
-                <button class="edit-btn" onclick="editNote('${noteId}')">Edit</button>
-                <button class="delete-btn" onclick="deleteNote('${noteId}')">Delete</button>
+                <button class="edit-btn">Edit</button>
+                <button class="delete-btn">Delete</button>
               </div>
             `;
             notesContainer.appendChild(noteElement);
+
+            // Attach delete event listener
+            noteElement.querySelector('.delete-btn').addEventListener('click', () => deleteNote(noteId));
+
+            // Attach edit event listener
+            noteElement.querySelector('.edit-btn').addEventListener('click', () => editNote(noteId));
           });
         }
       }
@@ -282,7 +289,7 @@
         loadNotes();
       }
 
-      window.editNote = async (noteId) => {
+      async function editNote(noteId) {
         const noteRef = doc(db, 'notes', noteId);
         const noteSnap = await getDoc(noteRef);
         if (noteSnap.exists()) {
@@ -293,7 +300,7 @@
         } else {
           alert('Note not found');
         }
-      };
+      }
     </script>
 </body>
 </html>
