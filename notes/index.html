@@ -17,9 +17,8 @@
             color: #333;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Start aligning from the top */
+            align-items: center;
             height: 100vh;
-            padding: 20px;
         }
 
         .container {
@@ -29,23 +28,17 @@
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            height: 100%; /* Full height for layout */
-            justify-content: flex-start;
-            overflow: hidden; /* Prevent content overflow */
         }
 
         h1 {
             text-align: center;
             margin-bottom: 20px;
             color: #333;
-            font-size: 24px;
-            padding: 10px;
-            background-color: #fff;
-            position: sticky; /* Ensure title stays visible */
+            position: sticky;
             top: 0;
-            z-index: 1000; /* Make sure it stays on top */
+            background-color: white;
+            padding-top: 10px;
+            z-index: 1;
         }
 
         textarea {
@@ -77,8 +70,8 @@
 
         .notes {
             margin-top: 20px;
-            max-height: 400px; /* Adjust as needed */
-            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .note {
@@ -96,31 +89,33 @@
             margin: 0;
             font-size: 14px;
             color: #333;
-            word-wrap: break-word; /* Prevent long words from overflowing */
         }
 
         .note-buttons {
             display: flex;
-            gap: 10px; /* Add space between buttons */
+            gap: 10px;
         }
 
         .note button {
-            width: auto;
             padding: 5px;
+            color: white;
+            border-radius: 4px;
+        }
+
+        .delete-btn {
             background-color: #e57373;
+        }
 
-             .edit-btn {
-    background-color: #4caf50; /* Green background */
-}
-
-.edit-btn:hover {
-    background-color: #388e3c; /* Darker green on hover */
-}
-
-
-
-        .note button:hover {
+        .delete-btn:hover {
             background-color: #d32f2f;
+        }
+
+        .edit-btn {
+            background-color: #4caf50; /* Green button */
+        }
+
+        .edit-btn:hover {
+            background-color: #388e3c; /* Darker green */
         }
 
         /* Login & Signup Styles */
@@ -159,12 +154,11 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
-      // Import the functions you need from the SDKs you need
+      // Firebase code
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-      // Your web app's Firebase configuration
       const firebaseConfig = {
         apiKey: "AIzaSyD70HGwDYe7uB4sehvsRurHJIQ-iMZIKcU",
         authDomain: "martiboa-notes.firebaseapp.com",
@@ -175,12 +169,10 @@
         measurementId: "G-0EZ39H6E4R"
       };
 
-      // Initialize Firebase
       const app = initializeApp(firebaseConfig);
       const auth = getAuth();
       const db = getFirestore();
 
-      // Elements from the HTML
       const emailInput = document.getElementById('email');
       const passwordInput = document.getElementById('password');
       const loginBtn = document.getElementById('loginBtn');
@@ -192,7 +184,6 @@
       let userId = null;
       let currentEditNoteId = null;
 
-      // Sign up new users
       signupBtn.addEventListener('click', async () => {
         const email = emailInput.value;
         const password = passwordInput.value;
@@ -207,7 +198,6 @@
         }
       });
 
-      // Log in existing users
       loginBtn.addEventListener('click', async () => {
         const email = emailInput.value;
         const password = passwordInput.value;
@@ -222,16 +212,14 @@
         }
       });
 
-      // Log out the user
       logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
         userId = null;
         toggleAuthState(false);
         alert('Logged out');
-        notesContainer.innerHTML = ''; // Clear notes on logout
+        notesContainer.innerHTML = '';
       });
 
-      // Toggle login/logout state
       function toggleAuthState(isLoggedIn) {
         if (isLoggedIn) {
           document.getElementById('authContainer').style.display = 'none';
@@ -246,32 +234,32 @@
         }
       }
 
-      // Add or update note
       addNoteBtn.addEventListener('click', async () => {
         const noteText = noteInput.value.trim();
         if (noteText && userId) {
-          try {
-            if (currentEditNoteId) {
-              await updateDoc(doc(db, 'notes', currentEditNoteId), { text: noteText });
-              currentEditNoteId = null;
-              addNoteBtn.textContent = 'Add Note';
-            } else {
-              await addDoc(collection(db, 'notes'), { userId: userId, text: noteText });
-            }
-            noteInput.value = ''; // Clear input field
-            loadNotes();
-          } catch (error) {
-            alert('Error adding note: ' + error.message);
+          if (currentEditNoteId) {
+            const noteRef = doc(db, 'notes', currentEditNoteId);
+            await noteRef.update({
+              text: noteText
+            });
+            currentEditNoteId = null;
+            addNoteBtn.textContent = 'Add Note';
+          } else {
+            await addDoc(collection(db, 'notes'), {
+              userId: userId,
+              text: noteText
+            });
           }
+          noteInput.value = '';
+          loadNotes();
         }
       });
 
-      // Load user's notes from Firestore
       async function loadNotes() {
         if (userId) {
           const q = query(collection(db, 'notes'), where('userId', '==', userId));
           const querySnapshot = await getDocs(q);
-          notesContainer.innerHTML = ''; // Clear existing notes
+          notesContainer.innerHTML = '';
           querySnapshot.forEach((doc) => {
             const note = doc.data();
             const noteId = doc.id;
@@ -281,7 +269,7 @@
               <p>${note.text.replace(/\n/g, '<br>')}</p>
               <div class="note-buttons">
                 <button class="edit-btn" onclick="editNote('${noteId}')">Edit</button>
-                <button onclick="deleteNote('${noteId}')">Delete</button>
+                <button class="delete-btn" onclick="deleteNote('${noteId}')">Delete</button>
               </div>
             `;
             notesContainer.appendChild(noteElement);
@@ -289,23 +277,22 @@
         }
       }
 
-      // Edit note
-      window.editNote = async function (noteId) {
-        const docSnap = await getDoc(doc(db, 'notes', noteId));
-        if (docSnap.exists()) {
-          const note = docSnap.data();
-          noteInput.value = note.text;
+      async function deleteNote(noteId) {
+        await deleteDoc(doc(db, 'notes', noteId));
+        loadNotes();
+      }
+
+      window.editNote = async (noteId) => {
+        const noteRef = doc(db, 'notes', noteId);
+        const noteSnap = await getDoc(noteRef);
+        if (noteSnap.exists()) {
+          const noteData = noteSnap.data();
+          noteInput.value = noteData.text;
           currentEditNoteId = noteId;
           addNoteBtn.textContent = 'Update Note';
         } else {
           alert('Note not found');
         }
-      };
-
-      // Delete note
-      window.deleteNote = async function (noteId) {
-        await deleteDoc(doc(db, 'notes', noteId));
-        loadNotes();
       };
     </script>
 </body>
