@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes App</title>
     <style>
-        /* Style definitions remain the same */
+        /* Style definitions */
         * {
             margin: 0;
             padding: 0;
@@ -158,7 +158,7 @@
       // Firebase code
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyD70HGwDYe7uB4sehvsRurHJIQ-iMZIKcU",
@@ -243,8 +243,8 @@
             await updateDoc(noteRef, {
               text: noteText
             });
-            currentEditNoteId = null;
-            addNoteBtn.textContent = 'Add Note';
+            currentEditNoteId = null; // Reset after update
+            addNoteBtn.textContent = 'Add Note'; // Change button text back
           } else {
             await addDoc(collection(db, 'notes'), {
               userId: userId,
@@ -265,7 +265,7 @@
             const note = doc.data();
             const noteId = doc.id;
             const noteElement = document.createElement('div');
-            noteElement.className = 'note';
+            noteElement.classList.add('note');
             noteElement.innerHTML = `
               <p>${note.text.replace(/\n/g, '<br>')}</p>
               <div class="note-buttons">
