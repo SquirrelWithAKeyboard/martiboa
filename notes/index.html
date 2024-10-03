@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes App</title>
     <style>
-        /* Same styles as before */
         * {
             margin: 0;
             padding: 0;
@@ -84,7 +83,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: move; /* Makes it clear the note can be dragged */
+            cursor: move;
         }
 
         .note p {
@@ -155,7 +154,6 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
-      // Firebase code remains the same
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
       import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
@@ -179,22 +177,55 @@
       let userId = null;
       let currentEditNoteId = null;
 
+      // Sign Up
       signupBtn.addEventListener('click', async () => {
-        // Sign-up logic remains the same
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          userId = userCredential.user.uid;
+          showNotesUI();
+          loadNotes();
+        } catch (error) {
+          console.error("Error signing up:", error.message);
+        }
       });
 
+      // Login
       loginBtn.addEventListener('click', async () => {
-        // Login logic remains the same
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          userId = userCredential.user.uid;
+          showNotesUI();
+          loadNotes();
+        } catch (error) {
+          console.error("Error logging in:", error.message);
+        }
       });
 
+      // Logout
       logoutBtn.addEventListener('click', async () => {
-        // Logout logic remains the same
+        await signOut(auth);
+        hideNotesUI();
       });
 
+      // Add/Update Note
       addNoteBtn.addEventListener('click', async () => {
-        // Add or update note logic remains the same
+        const noteText = noteInput.value;
+        if (currentEditNoteId) {
+          await updateDoc(doc(db, 'notes', currentEditNoteId), { text: noteText });
+          currentEditNoteId = null;
+          addNoteBtn.textContent = 'Add Note';
+        } else {
+          await addDoc(collection(db, 'notes'), { text: noteText, userId });
+        }
+        noteInput.value = '';
+        loadNotes();
       });
 
+      // Load Notes
       async function loadNotes() {
         if (userId) {
           const q = query(collection(db, 'notes'), where('userId', '==', userId));
@@ -229,60 +260,85 @@
         }
       }
 
+      // Delete Note
       async function deleteNote(noteId) {
-        // Delete note logic remains the same
+        await deleteDoc(doc(db, 'notes', noteId));
+        loadNotes();
       }
 
+      // Edit Note
       async function editNote(noteId) {
-        // Edit note logic remains the same
+        const noteRef = doc(db, 'notes', noteId);
+        const noteSnap = await getDoc(noteRef);
+        if (noteSnap.exists()) {
+          const note = noteSnap.data();
+          noteInput.value = note.text;
+          currentEditNoteId = noteId;
+          addNoteBtn.textContent = 'Update Note';
+        }
       }
 
-      // Variables for touch drag-and-drop
-      let startY = 0;
-      let draggedNote = null;
+      // Touch Drag-and-Drop
+      let draggedNoteId = null;
+      let initialTouchY = 0;
 
       function handleTouchStart(e) {
-        startY = e.touches[0].clientY;
-        draggedNote = e.target.closest('.note');
+        draggedNoteId = e.target.dataset.id;
+        initialTouchY = e.touches[0].clientY;
       }
 
       function handleTouchMove(e) {
-        const currentY = e.touches[0].clientY;
-        const diffY = currentY - startY;
-        draggedNote.style.transform = `translateY(${diffY}px)`;
+        const noteElement = e.target;
+        const deltaY = e.touches[0].clientY - initialTouchY;
+        noteElement.style.transform = `translateY(${deltaY}px)`;
       }
 
-      function handleTouchEnd(e) {
-        draggedNote.style.transform = ''; // Reset position
-        const dropTarget = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-        const targetNote = dropTarget.closest('.note');
-        
-        if (targetNote && draggedNote !== targetNote) {
-          const draggedId = draggedNote.dataset.id;
-          const targetId = targetNote.dataset.id;
+      async function handleTouchEnd(e) {
+        const targetNoteElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        const targetNoteId = targetNoteElement ? targetNoteElement.dataset.id : null;
 
-          // Swap notes in the database
-          swapNotes(draggedId, targetId);
+        if (draggedNoteId && targetNoteId && draggedNoteId !== targetNoteId) {
+          const draggedNoteRef = doc(db, 'notes', draggedNoteId);
+          const targetNoteRef = doc(db, 'notes', targetNoteId);
+          const draggedNoteSnap = await getDoc(draggedNoteRef);
+          const targetNoteSnap = await getDoc(targetNoteRef);
+
+          if (draggedNoteSnap.exists() && targetNoteSnap.exists()) {
+            const draggedData = draggedNoteSnap.data();
+            const targetData = targetNoteSnap.data();
+
+            // Swap notes
+            await updateDoc(draggedNoteRef, { text: targetData.text });
+            await updateDoc(targetNoteRef, { text: draggedData.text });
+
+            loadNotes();
+          }
         }
+        e.target.style.transform = 'none';
+        draggedNoteId = null;
       }
 
-      async function swapNotes(draggedId, targetId) {
-        const draggedNoteRef = doc(db, 'notes', draggedId);
-        const targetNoteRef = doc(db, 'notes', targetId);
+      // Show Notes UI (after login/signup)
+      function showNotesUI() {
+        noteInput.style.display = 'block';
+        addNoteBtn.style.display = 'block';
+        logoutBtn.style.display = 'block';
+        emailInput.style.display = 'none';
+        passwordInput.style.display = 'none';
+        loginBtn.style.display = 'none';
+        signupBtn.style.display = 'none';
+      }
 
-        const draggedNoteSnap = await getDoc(draggedNoteRef);
-        const targetNoteSnap = await getDoc(targetNoteRef);
-
-        if (draggedNoteSnap.exists() && targetNoteSnap.exists()) {
-          const draggedData = draggedNoteSnap.data();
-          const targetData = targetNoteSnap.data();
-
-          // Swap notes' text
-          await updateDoc(draggedNoteRef, { text: targetData.text });
-          await updateDoc(targetNoteRef, { text: draggedData.text });
-
-          loadNotes(); // Reload notes to reflect changes
-        }
+      // Hide Notes UI (on logout)
+      function hideNotesUI() {
+        noteInput.style.display = 'none';
+        addNoteBtn.style.display = 'none';
+        logoutBtn.style.display = 'none';
+        emailInput.style.display = 'block';
+        passwordInput.style.display = 'block';
+        loginBtn.style.display = 'block';
+        signupBtn.style.display = 'block';
+        notesContainer.innerHTML = '';
       }
     </script>
 </body>
