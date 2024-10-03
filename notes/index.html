@@ -84,6 +84,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: move; /* Makes it clear the note can be dragged */
         }
 
         .note p {
@@ -158,7 +159,7 @@
       // Firebase code
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyD70HGwDYe7uB4sehvsRurHJIQ-iMZIKcU",
@@ -264,8 +265,12 @@
           querySnapshot.forEach((doc) => {
             const note = doc.data();
             const noteId = doc.id;
+
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
+            noteElement.setAttribute('draggable', 'true'); // Make note draggable
+            noteElement.dataset.id = noteId; // Store noteId for reordering
+
             noteElement.innerHTML = `
               <p>${note.text.replace(/\n/g, '<br>')}</p>
               <div class="note-buttons">
@@ -280,6 +285,11 @@
 
             // Attach edit event listener
             noteElement.querySelector('.edit-btn').addEventListener('click', () => editNote(noteId));
+
+            // Attach drag and drop event listeners
+            noteElement.addEventListener('dragstart', handleDragStart);
+            noteElement.addEventListener('dragover', handleDragOver);
+            noteElement.addEventListener('drop', handleDrop);
           });
         }
       }
@@ -299,6 +309,45 @@
           addNoteBtn.textContent = 'Update Note';
         } else {
           alert('Note not found');
+        }
+      }
+
+      // Drag and Drop Functions
+      let draggedElement = null;
+
+      function handleDragStart(e) {
+        draggedElement = e.target;
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault(); // Allow drop
+      }
+
+      async function handleDrop(e) {
+        e.preventDefault();
+
+        const dropTarget = e.target.closest('.note');
+        if (draggedElement !== dropTarget && dropTarget) {
+          const draggedId = draggedElement.dataset.id;
+          const dropTargetId = dropTarget.dataset.id;
+
+          // Swap the order in Firestore or other logic to reorder notes
+          const draggedNoteRef = doc(db, 'notes', draggedId);
+          const dropTargetNoteRef = doc(db, 'notes', dropTargetId);
+
+          const draggedNoteSnap = await getDoc(draggedNoteRef);
+          const dropTargetNoteSnap = await getDoc(dropTargetNoteRef);
+
+          if (draggedNoteSnap.exists() && dropTargetNoteSnap.exists()) {
+            const draggedData = draggedNoteSnap.data();
+            const dropTargetData = dropTargetNoteSnap.data();
+
+            // Swap the notes (simplified for demo purposes)
+            await updateDoc(draggedNoteRef, { text: dropTargetData.text });
+            await updateDoc(dropTargetNoteRef, { text: draggedData.text });
+
+            loadNotes(); // Reload notes to reflect changes
+          }
         }
       }
     </script>
