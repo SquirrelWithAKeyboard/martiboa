@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes App</title>
     <style>
+        /* Style definitions */
         * {
             margin: 0;
             padding: 0;
@@ -34,6 +35,11 @@
             text-align: center;
             margin-bottom: 20px;
             color: #333;
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding-top: 10px;
+            z-index: 1;
         }
 
         textarea {
@@ -65,6 +71,8 @@
 
         .notes {
             margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .note {
@@ -76,40 +84,39 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
         }
 
         .note p {
             margin: 0;
             font-size: 14px;
             color: #333;
-            word-wrap: break-word;
         }
 
         .note-buttons {
             display: flex;
-            gap: 5px;
+            gap: 10px;
         }
 
         .note button {
             padding: 5px;
-            background-color: #e57373;
             color: white;
-            border: none;
-            cursor: pointer;
             border-radius: 4px;
         }
 
-        .note .edit-btn {
-            background-color: #4caf50;
-        }
-
-        .note .delete-btn {
+        .delete-btn {
             background-color: #e57373;
         }
 
-        .note button:hover {
-            opacity: 0.8;
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .edit-btn {
+            background-color: #4caf50; /* Green button */
+        }
+
+        .edit-btn:hover {
+            background-color: #388e3c; /* Darker green */
         }
 
         /* Login & Signup Styles */
@@ -148,17 +155,19 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
+      // Firebase code
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
       import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
       const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyD70HGwDYe7uB4sehvsRurHJIQ-iMZIKcU",
+        authDomain: "martiboa-notes.firebaseapp.com",
+        projectId: "martiboa-notes",
+        storageBucket: "martiboa-notes.appspot.com",
+        messagingSenderId: "736841312548",
+        appId: "1:736841312548:web:902a803e7af05149dc2bb1",
+        measurementId: "G-0EZ39H6E4R"
       };
 
       const app = initializeApp(firebaseConfig);
@@ -176,66 +185,77 @@
       let userId = null;
       let currentEditNoteId = null;
 
-      // Check auth state and persist login state
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          userId = user.uid;
-          showNotesUI();
-          loadNotes();
-        } else {
-          hideNotesUI();
-        }
-      });
-
-      // Sign Up
       signupBtn.addEventListener('click', async () => {
         const email = emailInput.value;
         const password = passwordInput.value;
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           userId = userCredential.user.uid;
-          showNotesUI();
+          alert('Sign up successful');
+          toggleAuthState(true);
           loadNotes();
         } catch (error) {
-          console.error("Error signing up:", error.message);
+          alert(error.message);
         }
       });
 
-      // Login
       loginBtn.addEventListener('click', async () => {
         const email = emailInput.value;
         const password = passwordInput.value;
         try {
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
           userId = userCredential.user.uid;
-          showNotesUI();
+          alert('Login successful');
+          toggleAuthState(true);
           loadNotes();
         } catch (error) {
-          console.error("Error logging in:", error.message);
+          alert(error.message);
         }
       });
 
-      // Logout
       logoutBtn.addEventListener('click', async () => {
         await signOut(auth);
-        hideNotesUI();
+        userId = null;
+        toggleAuthState(false);
+        alert('Logged out');
+        notesContainer.innerHTML = '';
       });
 
-      // Add/Update Note
-      addNoteBtn.addEventListener('click', async () => {
-        const noteText = noteInput.value;
-        if (currentEditNoteId) {
-          await updateDoc(doc(db, 'notes', currentEditNoteId), { text: noteText });
-          currentEditNoteId = null;
-          addNoteBtn.textContent = 'Add Note';
+      function toggleAuthState(isLoggedIn) {
+        if (isLoggedIn) {
+          document.getElementById('authContainer').style.display = 'none';
+          noteInput.style.display = 'block';
+          addNoteBtn.style.display = 'block';
+          logoutBtn.style.display = 'block';
         } else {
-          await addDoc(collection(db, 'notes'), { text: noteText, userId });
+          document.getElementById('authContainer').style.display = 'block';
+          noteInput.style.display = 'none';
+          addNoteBtn.style.display = 'none';
+          logoutBtn.style.display = 'none';
         }
-        noteInput.value = '';
-        loadNotes();
+      }
+
+      addNoteBtn.addEventListener('click', async () => {
+        const noteText = noteInput.value.trim();
+        if (noteText && userId) {
+          if (currentEditNoteId) {
+            const noteRef = doc(db, 'notes', currentEditNoteId);
+            await updateDoc(noteRef, {
+              text: noteText
+            });
+            currentEditNoteId = null; // Reset after update
+            addNoteBtn.textContent = 'Add Note'; // Change button text back
+          } else {
+            await addDoc(collection(db, 'notes'), {
+              userId: userId,
+              text: noteText
+            });
+          }
+          noteInput.value = '';
+          loadNotes();
+        }
       });
 
-      // Load Notes
       async function loadNotes() {
         if (userId) {
           const q = query(collection(db, 'notes'), where('userId', '==', userId));
@@ -244,12 +264,8 @@
           querySnapshot.forEach((doc) => {
             const note = doc.data();
             const noteId = doc.id;
-
             const noteElement = document.createElement('div');
             noteElement.classList.add('note');
-            noteElement.setAttribute('draggable', 'true');
-            noteElement.dataset.id = noteId;
-
             noteElement.innerHTML = `
               <p>${note.text.replace(/\n/g, '<br>')}</p>
               <div class="note-buttons">
@@ -259,72 +275,31 @@
             `;
             notesContainer.appendChild(noteElement);
 
+            // Attach delete event listener
             noteElement.querySelector('.delete-btn').addEventListener('click', () => deleteNote(noteId));
-            noteElement.querySelector('.edit-btn').addEventListener('click', () => editNote(noteId));
 
-            // Drag and drop support
-            noteElement.addEventListener('dragstart', handleDragStart);
-            noteElement.addEventListener('dragover', handleDragOver);
-            noteElement.addEventListener('drop', handleDrop);
+            // Attach edit event listener
+            noteElement.querySelector('.edit-btn').addEventListener('click', () => editNote(noteId));
           });
         }
       }
 
-      // Drag and Drop
-      function handleDragStart(e) {
-        e.dataTransfer.setData('text/plain', e.target.dataset.id);
-      }
-
-      function handleDragOver(e) {
-        e.preventDefault();
-      }
-
-      function handleDrop(e) {
-        const draggedNoteId = e.dataTransfer.getData('text');
-        const droppedOnNoteId = e.target.closest('.note').dataset.id;
-        // Logic to handle reordering notes based on drag and drop
-        console.log(`Dragged note ID: ${draggedNoteId}, Dropped on note ID: ${droppedOnNoteId}`);
-      }
-
-      // Delete Note
       async function deleteNote(noteId) {
         await deleteDoc(doc(db, 'notes', noteId));
         loadNotes();
       }
 
-      // Edit Note
       async function editNote(noteId) {
         const noteRef = doc(db, 'notes', noteId);
         const noteSnap = await getDoc(noteRef);
         if (noteSnap.exists()) {
-          const note = noteSnap.data();
-          noteInput.value = note.text;
+          const noteData = noteSnap.data();
+          noteInput.value = noteData.text;
           currentEditNoteId = noteId;
           addNoteBtn.textContent = 'Update Note';
+        } else {
+          alert('Note not found');
         }
-      }
-
-      // Show Notes UI (after login/signup)
-      function showNotesUI() {
-        noteInput.style.display = 'block';
-        addNoteBtn.style.display = 'block';
-        logoutBtn.style.display = 'block';
-        emailInput.style.display = 'none';
-        passwordInput.style.display = 'none';
-        loginBtn.style.display = 'none';
-        signupBtn.style.display = 'none';
-      }
-
-      // Hide Notes UI (on logout)
-      function hideNotesUI() {
-        noteInput.style.display = 'none';
-        addNoteBtn.style.display = 'none';
-        logoutBtn.style.display = 'none';
-        emailInput.style.display = 'block';
-        passwordInput.style.display = 'block';
-        loginBtn.style.display = 'block';
-        signupBtn.style.display = 'block';
-        notesContainer.innerHTML = '';
       }
     </script>
 </body>
