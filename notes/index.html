@@ -34,11 +34,6 @@
             text-align: center;
             margin-bottom: 20px;
             color: #333;
-            position: sticky;
-            top: 0;
-            background-color: white;
-            padding-top: 10px;
-            z-index: 1;
         }
 
         textarea {
@@ -70,8 +65,6 @@
 
         .notes {
             margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
         }
 
         .note {
@@ -83,42 +76,43 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: move;
+            gap: 10px;
         }
 
         .note p {
             margin: 0;
             font-size: 14px;
             color: #333;
+            word-wrap: break-word;
         }
 
         .note-buttons {
             display: flex;
-            gap: 10px;
+            gap: 5px;
         }
 
         .note button {
             padding: 5px;
+            background-color: #e57373;
             color: white;
+            border: none;
+            cursor: pointer;
             border-radius: 4px;
         }
 
-        .delete-btn {
-            background-color: #e57373;
-        }
-
-        .delete-btn:hover {
-            background-color: #d32f2f;
-        }
-
-        .edit-btn {
+        .note .edit-btn {
             background-color: #4caf50;
         }
 
-        .edit-btn:hover {
-            background-color: #388e3c;
+        .note .delete-btn {
+            background-color: #e57373;
         }
 
+        .note button:hover {
+            opacity: 0.8;
+        }
+
+        /* Login & Signup Styles */
         .auth-container {
             text-align: center;
             margin-bottom: 20px;
@@ -155,11 +149,16 @@
     <!-- Firebase SDKs -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
       import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
       const firebaseConfig = {
-        // Your Firebase config here
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
       };
 
       const app = initializeApp(firebaseConfig);
@@ -176,6 +175,17 @@
       const notesContainer = document.getElementById('notesContainer');
       let userId = null;
       let currentEditNoteId = null;
+
+      // Check auth state and persist login state
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          userId = user.uid;
+          showNotesUI();
+          loadNotes();
+        } else {
+          hideNotesUI();
+        }
+      });
 
       // Sign Up
       signupBtn.addEventListener('click', async () => {
@@ -252,12 +262,28 @@
             noteElement.querySelector('.delete-btn').addEventListener('click', () => deleteNote(noteId));
             noteElement.querySelector('.edit-btn').addEventListener('click', () => editNote(noteId));
 
-            // Touch events for drag and drop
-            noteElement.addEventListener('touchstart', handleTouchStart);
-            noteElement.addEventListener('touchmove', handleTouchMove);
-            noteElement.addEventListener('touchend', handleTouchEnd);
+            // Drag and drop support
+            noteElement.addEventListener('dragstart', handleDragStart);
+            noteElement.addEventListener('dragover', handleDragOver);
+            noteElement.addEventListener('drop', handleDrop);
           });
         }
+      }
+
+      // Drag and Drop
+      function handleDragStart(e) {
+        e.dataTransfer.setData('text/plain', e.target.dataset.id);
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+      }
+
+      function handleDrop(e) {
+        const draggedNoteId = e.dataTransfer.getData('text');
+        const droppedOnNoteId = e.target.closest('.note').dataset.id;
+        // Logic to handle reordering notes based on drag and drop
+        console.log(`Dragged note ID: ${draggedNoteId}, Dropped on note ID: ${droppedOnNoteId}`);
       }
 
       // Delete Note
@@ -276,46 +302,6 @@
           currentEditNoteId = noteId;
           addNoteBtn.textContent = 'Update Note';
         }
-      }
-
-      // Touch Drag-and-Drop
-      let draggedNoteId = null;
-      let initialTouchY = 0;
-
-      function handleTouchStart(e) {
-        draggedNoteId = e.target.dataset.id;
-        initialTouchY = e.touches[0].clientY;
-      }
-
-      function handleTouchMove(e) {
-        const noteElement = e.target;
-        const deltaY = e.touches[0].clientY - initialTouchY;
-        noteElement.style.transform = `translateY(${deltaY}px)`;
-      }
-
-      async function handleTouchEnd(e) {
-        const targetNoteElement = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-        const targetNoteId = targetNoteElement ? targetNoteElement.dataset.id : null;
-
-        if (draggedNoteId && targetNoteId && draggedNoteId !== targetNoteId) {
-          const draggedNoteRef = doc(db, 'notes', draggedNoteId);
-          const targetNoteRef = doc(db, 'notes', targetNoteId);
-          const draggedNoteSnap = await getDoc(draggedNoteRef);
-          const targetNoteSnap = await getDoc(targetNoteRef);
-
-          if (draggedNoteSnap.exists() && targetNoteSnap.exists()) {
-            const draggedData = draggedNoteSnap.data();
-            const targetData = targetNoteSnap.data();
-
-            // Swap notes
-            await updateDoc(draggedNoteRef, { text: targetData.text });
-            await updateDoc(targetNoteRef, { text: draggedData.text });
-
-            loadNotes();
-          }
-        }
-        e.target.style.transform = 'none';
-        draggedNoteId = null;
       }
 
       // Show Notes UI (after login/signup)
