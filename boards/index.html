@@ -7,64 +7,118 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: #fff;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
     }
 
     h1 {
       text-align: center;
-      margin-top: 20px;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #333;
     }
 
     form {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      margin: 20px;
+      margin-bottom: 20px;
     }
 
-    form input, form button {
-      margin: 10px;
+    form input[type="text"],
+    form input[type="file"],
+    form button {
+      margin-bottom: 10px;
       padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
       font-size: 1rem;
+      width: 100%;
+    }
+
+    form button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    form button:hover {
+      background-color: #218838;
     }
 
     #boardEntries {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      gap: 10px;
     }
 
     .board-entry {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      margin: 10px;
+      background-color: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 8px;
       padding: 10px;
-      width: 80%;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .board-entry p {
+      margin: 0;
+      word-wrap: break-word;
     }
 
     .board-entry img {
       max-width: 100%;
       height: auto;
-      display: block;
       margin-top: 10px;
+      border-radius: 5px;
+    }
+
+    /* Add responsive design for mobile */
+    @media (max-width: 600px) {
+      .container {
+        width: 100%;
+        padding: 10px;
+      }
+
+      form input[type="text"],
+      form input[type="file"],
+      form button {
+        font-size: 0.9rem;
+        padding: 8px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Welcome to Boards</h1>
+  <div class="container">
+    <h1>Boards</h1>
 
-  <!-- Form for adding new board entries -->
-  <form id="boardForm">
-    <input type="text" id="textInput" placeholder="Enter your text" required>
-    <input type="file" id="imageInput" accept="image/*">
-    <button type="submit">Add to Board</button>
-  </form>
+    <!-- Form for adding new board entries -->
+    <form id="boardForm">
+      <input type="text" id="textInput" placeholder="Enter your text" required>
+      <input type="file" id="imageInput" accept="image/*">
+      <button type="submit">Add to Board</button>
+    </form>
 
-  <!-- Container for displaying board entries -->
-  <div id="boardEntries"></div>
+    <!-- Container for displaying board entries -->
+    <div id="boardEntries"></div>
+  </div>
 
   <script type="module">
     // Import the functions you need from the SDKs you need
@@ -147,4 +201,3 @@
   </script>
 </body>
 </html>
-
