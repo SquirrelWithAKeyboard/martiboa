@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boards</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px;
+    }
+
+    form input, form button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 1rem;
+    }
+
+    #boardEntries {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .board-entry {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      margin: 10px;
+      padding: 10px;
+      width: 80%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .board-entry img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Boards</h1>
+
+  <!-- Form for adding new board entries -->
+  <form id="boardForm">
+    <input type="text" id="textInput" placeholder="Enter your text" required>
+    <input type="file" id="imageInput" accept="image/*">
+    <button type="submit">Add to Board</button>
+  </form>
+
+  <!-- Container for displaying board entries -->
+  <div id="boardEntries"></div>
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKsahAM8bojIkt_9zmC-V31s8Qj5rjhW8",
+      authDomain: "martiboa-boards.firebaseapp.com",
+      projectId: "martiboa-boards",
+      storageBucket: "martiboa-boards.appspot.com",
+      messagingSenderId: "68971881175",
+      appId: "1:68971881175:web:742547c7e26ee161950692",
+      measurementId: "G-YE55LL8KFF"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Add an entry to Firestore and upload image to Storage
+    const boardForm = document.getElementById("boardForm");
+    const boardEntries = document.getElementById("boardEntries");
+
+    boardForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const textInput = document.getElementById("textInput").value;
+      const imageInput = document.getElementById("imageInput").files[0];
+
+      let imageUrl = "";
+      if (imageInput) {
+        const storageRef = ref(storage, `images/${imageInput.name}`);
+        await uploadBytes(storageRef, imageInput);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
+      await addDoc(collection(db, "boards"), {
+        text: textInput,
+        imageUrl: imageUrl,
+        timestamp: serverTimestamp()
+      });
+
+      document.getElementById("textInput").value = "";
+      document.getElementById("imageInput").value = "";
+      loadBoardEntries();
+    });
+
+    // Load entries from Firestore
+    async function loadBoardEntries() {
+      boardEntries.innerHTML = "";
+      const q = query(collection(db, "boards"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const entry = document.createElement("div");
+        entry.classList.add("board-entry");
+
+        const text = document.createElement("p");
+        text.textContent = data.text;
+        entry.appendChild(text);
+
+        if (data.imageUrl) {
+          const img = document.createElement("img");
+          img.src = data.imageUrl;
+          img.alt = "Board Image";
+          entry.appendChild(img);
+        }
+
+        boardEntries.appendChild(entry);
+      });
+    }
+
+    loadBoardEntries();
+  </script>
+</body>
+</html>
 
