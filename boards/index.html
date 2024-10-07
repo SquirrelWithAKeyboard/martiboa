@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boards</title>
+  <title>Boards - Corkboard Style</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      font-family: 'Trebuchet MS', sans-serif;
+      background-color: #f2f2f2;
       margin: 0;
       padding: 0;
       display: flex;
@@ -17,69 +17,88 @@
     }
 
     .container {
-      background-color: #fff;
-      width: 90%;
-      max-width: 600px;
+      width: 95%;
+      max-width: 800px;
+      background-image: url('https://i.imgur.com/MTPLnbd.jpg'); /* Corkboard background */
+      background-size: cover;
+      background-position: center;
+      padding: 40px;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      position: relative;
+      min-height: 90vh;
     }
 
     h1 {
       text-align: center;
-      font-size: 1.8rem;
-      margin-bottom: 20px;
+      font-size: 2.2rem;
       color: #333;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
     }
 
+    /* Styling for form inputs */
     form {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 8px;
       margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     form input[type="text"],
     form input[type="file"],
     form button {
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
       font-size: 1rem;
-      width: 100%;
+      border-radius: 5px;
+      border: none;
+      width: 80%;
     }
 
     form button {
-      background-color: #28a745;
-      color: white;
-      border: none;
+      background-color: #ffcc00;
+      color: #333;
+      font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: transform 0.3s ease;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
     }
 
     form button:hover {
-      background-color: #218838;
+      transform: scale(1.05);
     }
 
+    /* Corkboard Posts */
     #boardEntries {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      padding: 10px;
     }
 
     .board-entry {
-      background-color: #fafafa;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
+      background-color: #fdfd96; /* Post-it yellow */
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
+      position: relative;
+      transform: rotate(-2deg);
+    }
+
+    .board-entry:nth-child(even) {
+      transform: rotate(2deg);
     }
 
     .board-entry p {
-      margin: 0;
+      font-size: 1rem;
+      color: #333;
       word-wrap: break-word;
+      margin: 0;
     }
 
     .board-entry img {
@@ -87,15 +106,11 @@
       height: auto;
       margin-top: 10px;
       border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
-    /* Add responsive design for mobile */
-    @media (max-width: 600px) {
-      .container {
-        width: 100%;
-        padding: 10px;
-      }
-
+    /* Responsive Design */
+    @media (max-width: 768px) {
       form input[type="text"],
       form input[type="file"],
       form button {
@@ -111,9 +126,9 @@
 
     <!-- Form for adding new board entries -->
     <form id="boardForm">
-      <input type="text" id="textInput" placeholder="Enter your text" required>
+      <input type="text" id="textInput" placeholder="Enter your note" required>
       <input type="file" id="imageInput" accept="image/*">
-      <button type="submit">Add to Board</button>
+      <button type="submit">Post It!</button>
     </form>
 
     <!-- Container for displaying board entries -->
@@ -123,24 +138,21 @@
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-analytics.js";
     import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyDKsahAM8bojIkt_9zmC-V31s8Qj5rjhW8",
-      authDomain: "martiboa-boards.firebaseapp.com",
-      projectId: "martiboa-boards",
-      storageBucket: "martiboa-boards.appspot.com",
-      messagingSenderId: "68971881175",
-      appId: "1:68971881175:web:742547c7e26ee161950692",
-      measurementId: "G-YE55LL8KFF"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
