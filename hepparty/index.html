@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HEP Party</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        section {
+            padding: 20px;
+        }
+        #home {
+            background: url('https://via.placeholder.com/1500x500') no-repeat center center/cover;
+            height: 400px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #home h1 {
+            font-size: 50px;
+            margin: 0;
+        }
+        #home p {
+            font-size: 24px;
+        }
+        .cta-button {
+            background-color: #f44336;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 20px;
+        }
+        h2 {
+            color: #4CAF50;
+        }
+        .policy {
+            margin: 20px 0;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        form label {
+            margin: 10px 0 5px;
+        }
+        form input, form textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        form button {
+            margin-top: 15px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+        footer a {
+            color: white;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Home Section -->
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#policies">Policies</a></li>
+                <li><a href="#events">Events</a></li>
+                <li><a href="#contact">Contact Us</a></li>
+                <li><a href="#support">Support Us</a></li>
+            </ul>
+        </nav>
+        <section id="home">
+            <h1>Welcome to the HEP Party</h1>
+            <p>Your Voice, Our Future</p>
+            <a href="#support" class="cta-button">Join the Movement</a>
+        </section>
+    </header>
+
+    <!-- About Us Section -->
+    <section id="about">
+        <h2>About the HEP Party</h2>
+        <p>The HEP Party was founded with the vision of creating a better future for all. Our mission is to ensure fairness, opportunity, and progress for every citizen.</p>
+        <h3>Our Core Values:</h3>
+        <ul>
+            <li>Honesty</li>
+            <li>Equality</li>
+            <li>Progress</li>
+        </ul>
+    </section>
+
+    <!-- Policies Section -->
+    <section id="policies">
+        <h2>Our Policies</h2>
+        <div class="policy">
+            <h3>Education</h3>
+            <p>Our goal is to make education accessible and affordable for every student.</p>
+        </div>
+        <div class="policy">
+            <h3>Healthcare</h3>
+            <p>We are committed to providing affordable and quality healthcare for all citizens.</p>
+        </div>
+        <div class="policy">
+            <h3>Environment</h3>
+            <p>Our party is dedicated to protecting the environment through sustainable practices.</p>
+        </div>
+        <div class="policy">
+            <h3>Economy</h3>
+            <p>We will create a fair and balanced economy that benefits everyone.</p>
+        </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events">
+        <h2>Upcoming Events</h2>
+        <ul>
+            <li>Mock Debate: October 15, 2024</li>
+            <li>Campaign Rally: October 20, 2024</li>
+        </ul>
+    </section>
+
+    <!-- Contact Us Section -->
+    <section id="contact">
+        <h2>Contact Us</h2>
+        <form action="https://example.com/form-submit" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" required></textarea>
+            
+            <button type="submit">Send Message</button>
+        </form>
+    </section>
+
+    <!-- Support Us Section -->
+    <section id="support">
+        <h2>Support the HEP Party</h2>
+        <p>Join the movement to create a better future! Sign up to volunteer or support us.</p>
+        <form action="https://example.com/support-submit" method="post">
+            <label for="volunteer-name">Name:</label>
+            <input type="text" id="volunteer-name" name="volunteer-name" required>
+            
+            <label for="volunteer-email">Email:</label>
+            <input type="email" id="volunteer-email" name="volunteer-email" required>
+            
+            <button type="submit">Sign Up</button>
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 HEP Party. All rights reserved.</p>
+        <div>
+            <a href="#">Twitter</a> | <a href="#">Instagram</a>
+        </div>
+    </footer>
+
+</body>
+</html>
