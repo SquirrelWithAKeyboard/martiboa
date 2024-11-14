@@ -7,6 +7,6 @@ body, html {
     background-color: #87ceeb;
 }
 #gameCanvas {
-    background: linear-gradient(to bottom, #87ceeb, #eee);
     border: 2px solid black;
+    background: linear-gradient(to bottom, #87ceeb, #eee);
 }
