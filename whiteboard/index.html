@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collaborative Whiteboard</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+    #toolbar {
+      margin-bottom: 10px;
+    }
+    #canvas-container {
+      position: relative;
+    }
+    #whiteboard {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+    }
+    .text-box {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid #ddd;
+      padding: 4px;
+      transform-origin: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button onclick="setMode('draw')">Draw</button>
+    <button onclick="setMode('text')">Text</button>
+    <button onclick="clearBoard()">Clear</button>
+  </div>
+  <div id="canvas-container">
+    <canvas id="whiteboard" width="800" height="600"></canvas>
+  </div>
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBm7MpPDFx5zj1-Z17aRczPmKec9Byqmm8",
+      authDomain: "collaborative-whiteboard-72be9.firebaseapp.com",
+      databaseURL: "https://collaborative-whiteboard-72be9-default-rtdb.firebaseio.com",
+      projectId: "collaborative-whiteboard-72be9",
+      storageBucket: "collaborative-whiteboard-72be9.appspot.com",
+      messagingSenderId: "828264037977",
+      appId: "1:828264037977:web:a1af1e54bdcd929ea7fb48",
+      measurementId: "G-194KR8QC18"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Canvas setup
+    const canvas = document.getElementById('whiteboard');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+    let drawing = false;
+    let mode = 'draw';
+
+    // Set drawing or text mode
+    function setMode(newMode) {
+      mode = newMode;
+    }
+
+    // Drawing functionality
+    canvas.addEventListener('mousedown', (e) => {
+      if (mode === 'draw') {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (drawing && mode === 'draw') {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        syncCanvas();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      drawing = false;
+      syncCanvas();
+    });
+
+    // Add text functionality
+    canvas.addEventListener('click', (e) => {
+      if (mode === 'text') {
+        const textBox = document.createElement('div');
+        textBox.contentEditable = true;
+        textBox.className = 'text-box';
+        textBox.style.left = `${e.offsetX}px`;
+        textBox.style.top = `${e.offsetY}px`;
+        textBox.onblur = () => {
+          saveText({
+            content: textBox.innerText,
+            x: parseInt(textBox.style.left),
+            y: parseInt(textBox.style.top),
+            rotation: textBox.style.transform || 'none'
+          });
+        };
+        container.appendChild(textBox);
+        textBox.focus();
+      }
+    });
+
+    // Clear the whiteboard
+    function clearBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      set(ref(database, 'whiteboard'), null); // Clear data in Firebase
+    }
+
+    // Sync canvas to Firebase
+    function syncCanvas() {
+      const dataURL = canvas.toDataURL();
+      set(ref(database, 'whiteboard'), { image: dataURL });
+    }
+
+    // Save text to Firebase
+    function saveText(textData) {
+      push(ref(database, 'texts'), textData);
+    }
+
+    // Load canvas from Firebase
+    onValue(ref(database, 'whiteboard'), (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.image) {
+        const img = new Image();
+        img.src = data.image;
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+      }
+    });
+
+    // Load text from Firebase
+    onValue(ref(database, 'texts'), (snapshot) => {
+      container.querySelectorAll('.text-box').forEach(el => el.remove()); // Clear existing text
+      snapshot.forEach(childSnapshot => {
+        const textData = childSnapshot.val();
+        const textBox = document.createElement('div');
+        textBox.className = 'text-box';
+        textBox.style.left = `${textData.x}px`;
+        textBox.style.top = `${textData.y}px`;
+        textBox.style.transform = textData.rotation || 'none';
+        textBox.innerText = textData.content;
+        container.appendChild(textBox);
+      });
+    });
+  </script>
+</body>
+</html>
