@@ -38,7 +38,9 @@
   <div id="toolbar">
     <button onclick="setMode('draw')">Draw</button>
     <button onclick="setMode('text')">Text</button>
-    <button onclick="clearBoard()">Clear</button>
+    <button onclick="setMode('erase')">Eraser</button>
+    <label for="colorPicker">Color:</label>
+    <input type="color" id="colorPicker" value="#000000" onchange="setColor(this.value)">
   </div>
   <div id="canvas-container">
     <canvas id="whiteboard" width="800" height="600"></canvas>
@@ -71,15 +73,30 @@
     const container = document.getElementById('canvas-container');
     let drawing = false;
     let mode = 'draw';
+    let color = '#000000';
 
-    // Set drawing or text mode
+    // Set drawing, text, or erase mode
     function setMode(newMode) {
       mode = newMode;
+      if (mode === 'erase') {
+        ctx.strokeStyle = '#ffffff'; // Set eraser to "white"
+      } else if (mode === 'draw') {
+        ctx.strokeStyle = color; // Restore drawing color
+      }
+    }
+
+    // Set drawing color
+    function setColor(newColor) {
+      color = newColor;
+      if (mode === 'draw') {
+        ctx.strokeStyle = color;
+      }
+      ctx.fillStyle = color;
     }
 
     // Handle drawing
     function startDrawing(x, y) {
-      if (mode === 'draw') {
+      if (mode === 'draw' || mode === 'erase') {
         drawing = true;
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -87,7 +104,7 @@
     }
 
     function draw(x, y) {
-      if (drawing && mode === 'draw') {
+      if (drawing && (mode === 'draw' || mode === 'erase')) {
         ctx.lineTo(x, y);
         ctx.stroke();
       }
@@ -128,24 +145,20 @@
         textBox.className = 'text-box';
         textBox.style.left = `${e.offsetX}px`;
         textBox.style.top = `${e.offsetY}px`;
+        textBox.style.color = color;
         textBox.onblur = () => {
           saveText({
             content: textBox.innerText,
             x: parseInt(textBox.style.left),
             y: parseInt(textBox.style.top),
-            rotation: textBox.style.transform || 'none'
+            rotation: textBox.style.transform || 'none',
+            color: color
           });
         };
         container.appendChild(textBox);
         textBox.focus();
       }
     });
-
-    // Clear the whiteboard
-    function clearBoard() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      set(ref(database, 'whiteboard'), null); // Clear data in Firebase
-    }
 
     // Sync canvas to Firebase
     function syncCanvas() {
@@ -181,6 +194,7 @@
         textBox.style.left = `${textData.x}px`;
         textBox.style.top = `${textData.y}px`;
         textBox.style.transform = textData.rotation || 'none';
+        textBox.style.color = textData.color || '#000000';
         textBox.innerText = textData.content;
         container.appendChild(textBox);
       });
