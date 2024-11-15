@@ -12,13 +12,25 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      background-color: #f9f9f9;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
     }
     #toolbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       margin-bottom: 10px;
+    }
+    #toolbar button, #toolbar select {
+      margin: 0 5px;
+      padding: 5px 10px;
+      font-size: 16px;
     }
     #canvas-container {
       position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     #whiteboard {
       border: 1px solid #ccc;
@@ -26,10 +38,13 @@
     }
     .text-box {
       position: absolute;
-      background: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.8);
       border: 1px solid #ddd;
-      padding: 4px;
+      padding: 5px;
       transform-origin: center;
+      resize: none;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
     }
   </style>
 </head>
@@ -37,18 +52,25 @@
   <div id="toolbar">
     <button onclick="setMode('draw')">Draw</button>
     <button onclick="setMode('text')">Text</button>
-    <button onclick="clearBoard()">Clear</button>
+    <select id="color-picker">
+      <option value="black">Black</option>
+      <option value="red">Red</option>
+      <option value="blue">Blue</option>
+      <option value="green">Green</option>
+      <option value="yellow">Yellow</option>
+      <option value="purple">Purple</option>
+    </select>
   </div>
   <div id="canvas-container">
     <canvas id="whiteboard" width="800" height="600"></canvas>
   </div>
 
   <script type="module">
-    // Import the functions you need from the SDKs you need
+    // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    // Your web app's Firebase configuration
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBm7MpPDFx5zj1-Z17aRczPmKec9Byqmm8",
       authDomain: "collaborative-whiteboard-72be9.firebaseapp.com",
@@ -68,18 +90,27 @@
     const canvas = document.getElementById('whiteboard');
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('canvas-container');
+    const colorPicker = document.getElementById('color-picker');
     let drawing = false;
     let mode = 'draw';
+    let currentColor = 'black';
 
-    // Set drawing or text mode
+    // Update the drawing color
+    colorPicker.addEventListener('change', (e) => {
+      currentColor = e.target.value;
+      ctx.strokeStyle = currentColor;
+    });
+
+    // Set mode for drawing or adding text
     function setMode(newMode) {
       mode = newMode;
     }
 
-    // Drawing functionality
+    // Draw on the canvas
     canvas.addEventListener('mousedown', (e) => {
       if (mode === 'draw') {
         drawing = true;
+        ctx.strokeStyle = currentColor;
         ctx.beginPath();
         ctx.moveTo(e.offsetX, e.offsetY);
       }
@@ -95,35 +126,30 @@
 
     canvas.addEventListener('mouseup', () => {
       drawing = false;
+      ctx.closePath();
       syncCanvas();
     });
 
     // Add text functionality
     canvas.addEventListener('click', (e) => {
       if (mode === 'text') {
-        const textBox = document.createElement('div');
-        textBox.contentEditable = true;
+        const textBox = document.createElement('textarea');
         textBox.className = 'text-box';
         textBox.style.left = `${e.offsetX}px`;
         textBox.style.top = `${e.offsetY}px`;
+        textBox.style.color = currentColor;
         textBox.onblur = () => {
           saveText({
-            content: textBox.innerText,
+            content: textBox.value,
             x: parseInt(textBox.style.left),
             y: parseInt(textBox.style.top),
-            rotation: textBox.style.transform || 'none'
+            color: currentColor
           });
         };
         container.appendChild(textBox);
         textBox.focus();
       }
     });
-
-    // Clear the whiteboard
-    function clearBoard() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      set(ref(database, 'whiteboard'), null); // Clear data in Firebase
-    }
 
     // Sync canvas to Firebase
     function syncCanvas() {
@@ -154,12 +180,12 @@
       container.querySelectorAll('.text-box').forEach(el => el.remove()); // Clear existing text
       snapshot.forEach(childSnapshot => {
         const textData = childSnapshot.val();
-        const textBox = document.createElement('div');
+        const textBox = document.createElement('textarea');
         textBox.className = 'text-box';
         textBox.style.left = `${textData.x}px`;
         textBox.style.top = `${textData.y}px`;
-        textBox.style.transform = textData.rotation || 'none';
-        textBox.innerText = textData.content;
+        textBox.style.color = textData.color;
+        textBox.value = textData.content;
         container.appendChild(textBox);
       });
     });
