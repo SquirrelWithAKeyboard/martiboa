@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Video - Lemon Video</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-yellow-50">
+  <header class="p-4 bg-yellow-500 text-white">
+    <h1 class="text-2xl font-bold">Upload Video</h1>
+  </header>
+
+  <main class="p-4">
+    <form id="uploadForm" class="space-y-4">
+      <input
+        type="text"
+        id="username"
+        class="w-full p-2 border rounded"
+        placeholder="Your Username"
+        required
+      />
+      <input
+        type="text"
+        id="title"
+        class="w-full p-2 border rounded"
+        placeholder="Video Title"
+        required
+      />
+      <input
+        type="file"
+        id="videoFile"
+        class="w-full p-2 border rounded"
+        accept="video/mp4"
+        required
+      />
+      <button
+        type="submit"
+        class="w-full p-2 bg-yellow-500 text-white rounded"
+      >
+        Upload
+      </button>
+    </form>
+  </main>
+
+  <footer class="p-4 bg-yellow-500 text-white text-center mt-4">
+    &copy; 2025 Lemon Video
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const uploadForm = document.getElementById("uploadForm");
+
+    uploadForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const title = document.getElementById("title").value;
+      const videoFile = document.getElementById("videoFile").files[0];
+
+      if (!videoFile) {
+        alert("Please select a video file to upload.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const videoBase64 = event.target.result;
+
+        await push(ref(db, "videos"), {
+          username,
+          title,
+          videoBase64,
+        });
+
+        alert("Video uploaded successfully!");
+        uploadForm.reset();
+      };
+
+      reader.readAsDataURL(videoFile); // Convert to Base64
+    });
+  </script>
+</body>
+</html>
