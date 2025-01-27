@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lemon Video</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script type="module" defer src="firebase-config.js"></script>
+</head>
+<body class="bg-yellow-50">
+  <header class="p-4 bg-yellow-500 text-white flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Lemon Video</h1>
+    <a href="upload.html" class="bg-white text-yellow-500 px-4 py-2 rounded shadow font-semibold">
+      Upload Video
+    </a>
+  </header>
+
+  <main class="p-4">
+    <div class="mb-4">
+      <input
+        type="text"
+        id="searchBar"
+        class="w-full p-2 border rounded"
+        placeholder="Search videos by title or username..."
+      />
+    </div>
+
+    <div id="videoList" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <!-- Videos will be dynamically added here -->
+    </div>
+  </main>
+
+  <footer class="p-4 bg-yellow-500 text-white text-center mt-4">
+    &copy; 2025 Lemon Video
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const videoList = document.getElementById("videoList");
+    const searchBar = document.getElementById("searchBar");
+
+    const loadVideos = () => {
+      const videosRef = ref(db, "videos");
+      onValue(videosRef, (snapshot) => {
+        videoList.innerHTML = ""; // Clear list
+        const data = snapshot.val();
+        if (data) {
+          Object.entries(data).forEach(([id, video]) => {
+            const { title, username, videoBase64 } = video;
+            const videoCard = document.createElement("div");
+            videoCard.className = "p-4 border rounded bg-white shadow";
+
+            videoCard.innerHTML = `
+              <h2 class="text-xl font-bold">${title}</h2>
+              <p class="text-gray-600">Uploaded by: ${username}</p>
+              <video controls class="w-full mt-2 rounded">
+                <source src="${videoBase64}" type="video/mp4" />
+              </video>
+            `;
+
+            videoList.appendChild(videoCard);
+          });
+        }
+      });
+    };
+
+    searchBar.addEventListener("input", () => {
+      const query = searchBar.value.toLowerCase();
+      const cards = videoList.querySelectorAll("div");
+      cards.forEach((card) => {
+        const title = card.querySelector("h2").textContent.toLowerCase();
+        const username = card.querySelector("p").textContent.toLowerCase();
+        card.style.display = title.includes(query) || username.includes(query) ? "" : "none";
+      });
+    });
+
+    loadVideos();
+  </script>
+</body>
+</html>
