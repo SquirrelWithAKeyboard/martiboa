@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geoff Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #photo-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    #location-photo {
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+    }
+    #geoff-overlay {
+      position: absolute;
+      bottom: 0; /* Position at the bottom */
+      right: 0;  /* Position at the right */
+      width: 250px;  /* Increase the size of Geoff */
+      height: auto;  /* Maintain aspect ratio */
+      z-index: 10;  /* Ensure Geoff appears above the background */
+    }
+    footer {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌍 Geoff Tracker</h1>
+  <p id="location-name">Loading location...</p>
+  <div id="photo-wrapper">
+    <img id="location-photo" src="" alt="Location photo">
+    <img id="geoff-overlay" src="geoff.png" alt="Geoff">
+  </div>
+  <footer>
+    <p>Geoff goes somewhere new every day. Come back tomorrow!</p>
+  </footer>
+
+  <script>
+    const locations = [
+      { name: "Tokyo", query: "Tokyo cityscape" },
+      { name: "Cairo", query: "Cairo pyramids" },
+      { name: "New York City", query: "New York skyline" },
+      { name: "Paris", query: "Eiffel Tower" },
+      { name: "Sydney", query: "Sydney Opera House" },
+      { name: "Reykjavik", query: "Iceland landscape" },
+      { name: "Rio de Janeiro", query: "Christ the Redeemer" },
+      { name: "Venice", query: "Venice canal" },
+      { name: "Cape Town", query: "Table Mountain" },
+      { name: "London", query: "Big Ben London" },
+      { name: "Beijing", query: "Great Wall of China" },
+      { name: "Los Angeles", query: "Los Angeles" },
+      { name: "Berlin", query: "Berlin Wall" },
+      { name: "Barcelona", query: "Sagrada Familia" },
+      { name: "Moscow", query: "Kremlin Moscow" },
+      { name: "San Francisco", query: "Golden Gate Bridge" },
+      { name: "Rome", query: "Colosseum" },
+      { name: "Toronto", query: "Toronto skyline" },
+      { name: "Bangkok", query: "Bangkok cityscape" },
+      { name: "Dubai", query: "Burj Khalifa" },
+      { name: "Singapore", query: "Marina Bay Singapore" },
+      { name: "Istanbul", query: "Hagia Sophia" },
+      { name: "Seoul", query: "Seoul city" },
+      { name: "Athens", query: "Acropolis" },
+      { name: "Delhi", query: "Taj Mahal" },
+      { name: "Havana", query: "Havana Cuba street" },
+      { name: "Lisbon", query: "Lisbon cityscape" },
+      { name: "Amsterdam", query: "Amsterdam canal" },
+      { name: "Honolulu", query: "Honolulu beach" },
+      { name: "Jerusalem", query: "Jerusalem old city" },
+      { name: "Lima", query: "Machu Picchu" },
+      { name: "Buenos Aires", query: "Buenos Aires" },
+      { name: "Oslo", query: "Oslo fjord" },
+      { name: "Vancouver", query: "Vancouver skyline" },
+      { name: "Prague", query: "Prague castle" },
+      { name: "Auckland", query: "Auckland New Zealand" },
+      { name: "Helsinki", query: "Helsinki Finland" },
+      { name: "Nairobi", query: "Nairobi Kenya" },
+      { name: "Manila", query: "Manila Philippines" },
+      { name: "Kuala Lumpur", query: "Petronas Towers" },
+      { name: "Edinburgh", query: "Edinburgh Castle" },
+      { name: "Casablanca", query: "Casablanca Morocco" },
+      { name: "Kathmandu", query: "Kathmandu Nepal" },
+      { name: "Antarctica", query: "Antarctica" }
+    ];
+
+    function seededShuffle(array, seed) {
+      let arr = array.slice();
+      let random = mulberry32(seed);
+      for (let i = arr.length - 1; i > 0; i--) {
+        let j = Math.floor(random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function mulberry32(a) {
+      return function () {
+        let t = (a += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function getDaysSinceStart() {
+      const startDate = new Date(2025, 1, 1); // Jan 1, 2024
+      const today = new Date();
+      const diffTime = today - startDate;
+      return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    async function loadGeoff() {
+      const seed = 1337; // Consistent order for all users
+      const shuffled = seededShuffle(locations, seed);
+      const days = getDaysSinceStart();
+      const index = days % shuffled.length;
+      const location = shuffled[index];
+
+      document.getElementById("location-name").textContent = `Today, Geoff was spotted in ${location.name}!`;
+
+      const apiKey = 'SeTFBI2Uk34YTN7DXmfqtBBXGOYcDeeaE2fiSVniiV6nPZYG3sj7E1vl'; // Replace with your actual API key
+      const query = encodeURIComponent(location.query);
+      const apiUrl = `https://api.pexels.com/v1/search?query=${query}&per_page=1`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          headers: {
+            Authorization: apiKey
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Pexels API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.photos && data.photos.length > 0) {
+          const photoUrl = data.photos[0].src.large;
+          document.getElementById("location-photo").src = photoUrl;
+        } else {
+          document.getElementById("location-photo").src = 'fallback.jpg'; // Provide a fallback image
+        }
+      } catch (error) {
+        console.error('Error fetching image from Pexels:', error);
+        document.getElementById("location-photo").src = 'fallback.jpg'; // Provide a fallback image
+      }
+    }
+
+    loadGeoff();
+  </script>
+
+</body>
+</html>
