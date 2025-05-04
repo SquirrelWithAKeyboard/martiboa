@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MB3D - 3D Printing with Style</title>
+  <style>
+    :root {
+      --accent: #00ffc8;
+      --bg: #111;
+      --text: #fff;
+      --card-bg: #1a1a1a;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header, footer {
+      background: #000;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      color: var(--accent);
+    }
+    nav a {
+      margin: 0 1rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+    nav a:hover {
+      color: var(--accent);
+    }
+    section {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+    }
+    h2 {
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    .card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    form input, form textarea, form button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 5px;
+    }
+    form button {
+      background: var(--accent);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    footer {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MB3D</h1>
+    <nav>
+      <a href="#products">Products</a>
+      <a href="#commissions">Commissions</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <section id="products">
+    <h2>Our Base Items</h2>
+    <div class="grid">
+      <div class="card">
+        <img src="example1.jpg" alt="3D Keychain"/>
+        <h3>3D Keychain</h3>
+        <p>Durable, lightweight, and customizable with initials.</p>
+      </div>
+      <div class="card">
+        <img src="example2.jpg" alt="Miniature Planter"/>
+        <h3>Mini Planter</h3>
+        <p>Perfect for succulents or tiny desk plants. 🌱</p>
+      </div>
+      <!-- Add more products as needed -->
+    </div>
+  </section>
+
+  <section id="commissions">
+    <h2>Event Commissions</h2>
+    <p>Planning a party, con, or corporate event? MB3D can print big batches of themed items. Tell us what you need and we’ll make it happen.</p>
+    <p>Email us directly or use the form below to start your commission.</p>
+  </section>
+
+  <section id="about">
+    <h2>About MB3D</h2>
+    <p>MB3D is all about making 3D printing accessible, fun, and functional. We specialize in base items for everyday use and take on custom commissions for large events. Every print is made with care and a sprinkle of nerdy joy.</p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact Us</h2>
+    <form onsubmit="alert('Thanks! We’ll get back to you ASAP.'); return false;">
+      <input type="text" placeholder="Your Name" required />
+      <input type="email" placeholder="Your Email" required />
+      <textarea rows="4" placeholder="What do you need?" required></textarea>
+      <button type="submit">Send</button>
+    </form>
+  </section>
+
+  <footer>
+    &copy; 2025 MB3D | No robots were harmed in the making of this site.
+  </footer>
+</body>
+</html>
