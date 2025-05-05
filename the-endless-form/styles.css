@@ -1,0 +1,77 @@
+body {
+    background-color: #222;
+    color: white;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    overflow: hidden;
+}
+
+.form-container {
+    width: 300px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid white;
+    background-color: rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+input, button {
+    margin: 10px;
+    padding: 10px;
+    font-size: 1em;
+    width: 100%;
+    border: 1px solid #555;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+button {
+    background-color: red;
+    cursor: pointer;
+}
+
+.glitch {
+    animation: glitch 1s infinite;
+}
+
+@keyframes glitch {
+    0% { transform: skewX(0deg); }
+    50% { transform: skewX(10deg); }
+    100% { transform: skewX(0deg); }
+}
+
+.glitch-strong {
+    animation: glitch-strong 0.5s infinite;
+}
+
+@keyframes glitch-strong {
+    0% { transform: skewX(0deg); }
+    50% { transform: skewX(20deg); }
+    100% { transform: skewX(0deg); }
+}
+
+.glitch-bad {
+    animation: glitch-bad 0.25s infinite;
+}
+
+@keyframes glitch-bad {
+    0% { transform: skewX(0deg); }
+    50% { transform: skewX(40deg); }
+    100% { transform: skewX(0deg); }
+}
+
+.flicker {
+    animation: flicker 0.1s infinite;
+}
+
+@keyframes flicker {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
