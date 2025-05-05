@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Form</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Endless Form</h1>
+        <form id="endlessForm">
+            <div id="question1" class="question">
+                <label for="question1Input">What is your name?</label>
+                <input type="text" id="question1Input" name="question1Input">
+            </div>
+            <div id="question2" class="question" style="display:none;">
+                <label for="question2Input">How are you feeling today?</label>
+                <input type="text" id="question2Input" name="question2Input">
+            </div>
+            <div id="question3" class="question" style="display:none;">
+                <label for="question3Input">How’s the weather in your location?</label>
+                <input type="text" id="question3Input" name="question3Input">
+            </div>
+            <div id="question4" class="question" style="display:none;">
+                <label for="question4Input">Have you checked outside your window? It’s getting dark...</label>
+                <input type="text" id="question4Input" name="question4Input">
+            </div>
+            <div id="question5" class="question" style="display:none;">
+                <label for="question5Input">Can you hear that tapping sound coming from the walls?</label>
+                <input type="text" id="question5Input" name="question5Input">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <audio id="glitchSound" src="glitch-sound.mp3" preload="auto"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
