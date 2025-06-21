@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DougRadio Stream Player</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+  .player { max-width: 400px; margin: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
+  h1, h2 { text-align: center; }
+  #track { font-weight: bold; margin-top: 15px; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>DougRadio</h1>
+
+<div class="player">
+  <h2>Live Stream</h2>
+  <audio id="audioPlayer" controls autoplay>
+    <source src="http://5.66.94.135:8000/stream" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+  <div id="track">Loading track info...</div>
+</div>
+
+<script>
+  const trackElement = document.getElementById('track');
+  const statusURL = 'http://5.66.94.135:8000/status-json.xsl';
+
+  async function updateTrackInfo() {
+    try {
+      const response = await fetch(statusURL);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+
+      const mountpoints = data.icestats.source;
+      let currentMount = null;
+
+      if (Array.isArray(mountpoints)) {
+        currentMount = mountpoints.find(mp => mp.listenurl && mp.listenurl.includes('/stream'));
+      } else {
+        currentMount = mountpoints;
+      }
+
+      if (currentMount && currentMount.title) {
+        trackElement.textContent = `Now playing: ${currentMount.title}`;
+      } else if (currentMount && currentMount.artist && currentMount.song) {
+        trackElement.textContent = `Now playing: ${currentMount.artist} - ${currentMount.song}`;
+      } else {
+        trackElement.textContent = 'No track info available';
+      }
+    } catch (error) {
+      trackElement.textContent = 'Could not load track info';
+      console.error('Error fetching status JSON:', error);
+    }
+  }
+
+  updateTrackInfo();
+  setInterval(updateTrackInfo, 15000);
+</script>
+
+</body>
+</html>
