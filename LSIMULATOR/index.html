@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hot Latina Sim</title>
+    <style>
+        /* Global Styles */
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #f7e1d7, #f0c9b7); /* Warm, inviting background */
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+        }
+        
+        #game-container {
+            width: 900px;
+            height: 600px;
+            background: #fff8e1; /* Creamy background for cafe interior */
+            border: 8px solid #8B4513; /* Wood-like border */
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #A0522D; /* Sienna */
+            color: #fff;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-bottom: 3px solid #8B4513;
+        }
+        #money, #customer-count {
+            display: flex;
+            align-items: center;
+        }
+        #money::before {
+            content: '💰';
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        #customer-count::before {
+            content: '👤';
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        #game-area {
+            flex-grow: 1;
+            position: relative;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 20px;
+        }
+
+        .customer {
+            width: 60px;
+            height: 60px;
+            background-color: #add8e6; /* Light Blue */
+            border-radius: 50%;
+            border: 2px solid #555;
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            animation: appear 0.5s ease-out forwards;
+        }
+        .customer.satisfied {
+            background-color: #90ee90; /* Light Green */
+        }
+        .customer.leaving {
+            animation: disappear 0.5s ease-in forwards;
+        }
+        .customer:hover {
+            transform: scale(1.05);
+        }
+        .customer:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes appear {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes disappear {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+
+        .thought-bubble {
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #777;
+            border-radius: 10px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            white-space: nowrap;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .thought-bubble::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -5px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #fff;
+            transform: translateX(-50%);
+        }
+
+        #shop-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-height: 90%;
+            background-color: #fce4ec; /* Light pink for shop */
+            border: 5px solid #D8BFD8; /* Thistle color for shop border */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            padding: 20px;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        #shop-panel h2 {
+            color: #8B008B; /* Dark Magenta */
+            margin-top: 0;
+            font-size: 2em;
+        }
+        #shop-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-height: calc(100% - 80px); /* Adjust for heading and close button */
+            overflow-y: auto;
+            padding-right: 10px; /* For scrollbar */
+        }
+        .shop-item {
+            background-color: #fff;
+            border: 2px solid #DDA0DD; /* Plum */
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .shop-item:hover {
+            transform: translateY(-5px);
+        }
+        .shop-item h3 {
+            margin-top: 5px;
+            margin-bottom: 8px;
+            color: #4B0082; /* Indigo */
+        }
+        .shop-item p {
+            font-size: 0.9em;
+            color: #666;
+            flex-grow: 1; /* Pushes button to bottom */
+        }
+        .shop-item button {
+            background-color: #DA70D6; /* Orchid */
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: background-color 0.3s ease;
+        }
+        .shop-item button:hover {
+            background-color: #BF5FBF; /* Darker Orchid */
+        }
+        .shop-item button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #close-shop-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #8B008B;
+            transition: transform 0.2s ease;
+        }
+        #close-shop-button:hover {
+            transform: scale(1.2);
+        }
+
+        #shop-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #FF69B4; /* Hot Pink */
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            z-index: 50;
+        }
+        #shop-button:hover {
+            background-color: #E0529D;
+            transform: translateY(-3px);
+        }
+
+        .pet {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #8B4513; /* Brown for pet */
+            border-radius: 50%;
+            border: 2px solid #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8em;
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: top 0.5s ease-in-out, left 0.5s ease-in-out;
+        }
+        .pet.dog { background-color: #795548; }
+        .pet.cat { background-color: #9E9E9E; }
+
+
+        #start-screen, #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #start-screen.active, #game-over-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        #start-screen h1, #game-over-screen h1 {
+            font-size: 3.5em;
+            color: #FFD700; /* Gold */
+            margin-bottom: 20px;
+        }
+        #start-screen p, #game-over-screen p {
+            font-size: 1.3em;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        #start-screen button, #game-over-screen button {
+            padding: 15px 30px;
+            font-size: 1.8em;
+            background-color: #FF69B4; /* Hot Pink */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #start-screen button:hover, #game-over-screen button:hover {
+            background-color: #E0529D;
+            transform: translateY(-5px);
+        }
+        #final-score-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 950px) {
+            #game-container {
+                width: 95%;
+                height: 85vh;
+            }
+            #top-bar {
+                font-size: 1.2em;
+                padding: 8px 15px;
+            }
+            #shop-panel {
+                width: 90%;
+                padding: 15px;
+            }
+            #shop-panel h2 {
+                font-size: 1.8em;
+            }
+            .shop-item h3 {
+                font-size: 1.1em;
+            }
+            .shop-item p {
+                font-size: 0.8em;
+            }
+            .shop-item button {
+                padding: 6px 10px;
+                font-size: 0.9em;
+            }
+            #shop-button {
+                padding: 12px 20px;
+                font-size: 1.1em;
+            }
+            #start-screen h1, #game-over-screen h1 {
+                font-size: 2.5em;
+            }
+            #start-screen p, #game-over-screen p {
+                font-size: 1em;
+                padding: 0 10px;
+            }
+            #start-screen button, #game-over-screen button {
+                padding: 10px 20px;
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="top-bar">
+            <div id="money">0</div>
+            <div id="customer-count">0</div>
+        </div>
+        <div id="game-area">
+            <!-- Customers will be spawned here -->
+            <!-- Pets will appear here when purchased -->
+        </div>
+        <button id="shop-button">🛍️ Shop</button>
+
+        <div id="shop-panel">
+            <button id="close-shop-button">✖</button>
+            <h2>Cafe Upgrades & Pets</h2>
+            <div id="shop-items">
+                <!-- Shop items will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <div id="start-screen" class="active">
+        <h1>Welcome to Hot Latina Sim!</h1>
+        <p>
+            You're the manager of a vibrant new cafe, "Hot Latina Cafe", specializing in delicious Latin-inspired treats and a lively atmosphere!
+            Your goal is to serve customers quickly to earn money, upgrade your cafe, and even adopt some helpful pets!
+        </p>
+        <p>
+            <strong>How to Play:</strong><br>
+            Click on customers as they appear to serve them. The faster you serve, the happier they are, and the more money you get!
+            Use the "Shop" button to buy upgrades that attract more customers, increase your earnings, or speed up service.
+            Watch your money grow and build the most popular cafe in town!
+        </p>
+        <button id="startGameButton">Start Managing!</button>
+    </div>
+
+    <div id="game-over-screen">
+        <h1>Game Over!</h1>
+        <p>Your cafe didn't quite make it. But you served up <span id="final-score-display">0</span> customers!</p>
+        <p>Don't worry, every great manager has a humble beginning. Try again to build your dream cafe!</p>
+        <button id="restartGameButton">Start A New Cafe!</button>
+    </div>
+
+    <!-- Sound effects (using public domain sounds for ease) -->
+    <audio id="serveSound" src="https://www.soundjay.com/buttons/sounds/button-7.mp3" preload="auto"></audio>
+    <audio id="buySound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+    <audio id="errorSound" src="https://www.soundjay.com/misc/sounds/fail-buzzer-02.mp3" preload="auto"></audio>
+    <audio id="bgMusic" src="https://www.soundjay.com/ambient/sounds/wind-chimes-2.mp3" loop preload="auto"></audio>
+
+    <script>
+        // --- Game State Variables ---
+        let money = 0;
+        let customerCount = 0;
+        let customersServed = 0; // Total customers served for final score
+        let customerSpawnRate = 2000; // milliseconds: time between new customer attempts
+        let customerValue = 10; // Base money per customer
+        let maxCustomersOnScreen = 5; // Max number of customers in the cafe at once
+        let customerPatience = 5000; // milliseconds: time before customer leaves if not served
+        let gameRunning = false;
+        let lastCustomerSpawnTime = 0;
+        let animationFrameId;
+
+        const CUSTOMER_SIZE = 60; // Size of customer circles in pixels
+
+        // Shop items configuration
+        const shopItems = [
+            {
+                id: 'speedUpgrade1',
+                name: 'Faster Service (Level 1)',
+                description: 'Your staff works 10% faster, increasing customer patience.',
+                type: 'upgrade',
+                cost: 50,
+                effect: () => { customerPatience *= 1.10; }, // Customers wait longer
+                purchased: false,
+                icon: '⚡'
+            },
+            {
+                id: 'customerUpgrade1',
+                name: 'More Tables (Level 1)',
+                description: 'Expands seating, attracting more customers to the cafe.',
+                type: 'upgrade',
+                cost: 75,
+                effect: () => { customerSpawnRate *= 0.9; maxCustomersOnScreen += 1; }, // Faster spawns, more capacity
+                purchased: false,
+                icon: '🛋️'
+            },
+            {
+                id: 'valueUpgrade1',
+                name: 'Premium Ingredients (Level 1)',
+                description: 'Use better ingredients! Customers pay 20% more.',
+                type: 'upgrade',
+                cost: 100,
+                effect: () => { customerValue *= 1.20; }, // Higher earnings
+                purchased: false,
+                icon: '✨'
+            },
+            {
+                id: 'petDog',
+                name: 'Friendly Dog Pet (Woofy)',
+                description: 'Woof! This adorable pup attracts 5% more customers automatically.',
+                type: 'pet',
+                cost: 200,
+                effect: () => {
+                    const dogPet = document.createElement('div');
+                    dogPet.className = 'pet dog';
+                    dogPet.id = 'pet-dog';
+                    dogPet.textContent = '🐶';
+                    document.getElementById('game-area').appendChild(dogPet);
+                    // Make dog move randomly around the game area
+                    setInterval(() => {
+                        dogPet.style.left = `${Math.random() * (gameArea.offsetWidth - 70)}px`;
+                        dogPet.style.top = `${Math.random() * (gameArea.offsetHeight - 70)}px`;
+                    }, 3000); // Moves every 3 seconds
+                    // Passive effect: boost customer spawn rate
+                    customerSpawnRate *= 0.95; // 5% faster spawn rate
+                },
+                purchased: false,
+                icon: '🐾'
+            },
+            {
+                id: 'speedUpgrade2',
+                name: 'Faster Service (Level 2)',
+                description: 'Optimize workflow! Another 15% increase in customer patience.',
+                type: 'upgrade',
+                cost: 150,
+                effect: () => { customerPatience *= 1.15; },
+                purchased: false,
+                requires: 'speedUpgrade1', // Requires previous speed upgrade
+                icon: '⏱️'
+            },
+            {
+                id: 'customerUpgrade2',
+                name: 'Outdoor Seating (Level 2)',
+                description: 'Expand to the patio! Attracts even more patrons.',
+                type: 'upgrade',
+                cost: 175,
+                effect: () => { customerSpawnRate *= 0.85; maxCustomersOnScreen += 1; },
+                purchased: false,
+                requires: 'customerUpgrade1', // Requires previous customer upgrade
+                icon: '🌴'
+            },
+            {
+                id: 'valueUpgrade2',
+                name: 'Exotic Spices (Level 2)',
+                description: 'Introduce rare flavors! Customers pay 25% more for the unique taste.',
+                type: 'upgrade',
+                cost: 200,
+                effect: () => { customerValue *= 1.25; },
+                purchased: false,
+                requires: 'valueUpgrade1', // Requires previous value upgrade
+                icon: '🌶️'
+            },
+            {
+                id: 'petCat',
+                name: 'Calm Cat Pet (Mao)',
+                description: 'Meow! This serene cat calms customers, increasing patience by 10%.',
+                type: 'pet',
+                cost: 250,
+                effect: () => {
+                    const catPet = document.createElement('div');
+                    catPet.className = 'pet cat';
+                    catPet.id = 'pet-cat';
+                    catPet.textContent = '🐱';
+                    document.getElementById('game-area').appendChild(catPet);
+                     // Make cat move randomly around the game area
+                    setInterval(() => {
+                        catPet.style.left = `${Math.random() * (gameArea.offsetWidth - 70)}px`;
+                        catPet.style.top = `${Math.random() * (gameArea.offsetHeight - 70)}px`;
+                    }, 4000); // Moves every 4 seconds
+                    // Passive effect: increase patience
+                    customerPatience *= 1.10; // 10% more patience
+                },
+                purchased: false,
+                requires: 'petDog', // Requires the dog first for progression
+                icon: '🐈'
+            }
+        ];
+
+        // --- DOM Elements ---
+        const moneyDisplay = document.getElementById('money');
+        const customerCountDisplay = document.getElementById('customer-count');
+        const gameArea = document.getElementById('game-area');
+        const shopButton = document.getElementById('shop-button');
+        const shopPanel = document.getElementById('shop-panel');
+        const closeShopButton = document.getElementById('close-shop-button');
+        const shopItemsContainer = document.getElementById('shop-items');
+        const startScreen = document.getElementById('start-screen');
+        const startGameButton = document.getElementById('startGameButton');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const restartGameButton = document.getElementById('restartGameButton');
+        const finalScoreDisplay = document.getElementById('final-score-display');
+
+        // Sound Elements
+        const serveSound = document.getElementById('serveSound');
+        const buySound = document.getElementById('buySound');
+        const errorSound = document.getElementById('errorSound');
+        const bgMusic = document.getElementById('bgMusic');
+
+        // --- Game Functions ---
+
+        /** Updates the money and current customer count display. */
+        function updateUI() {
+            moneyDisplay.textContent = money.toFixed(0);
+            customerCountDisplay.textContent = gameArea.querySelectorAll('.customer:not(.leaving)').length;
+        }
+
+        /** Spawns a new customer if space is available. */
+        function spawnCustomer() {
+            if (!gameRunning) return;
+
+            const currentCustomers = gameArea.querySelectorAll('.customer').length;
+            if (currentCustomers < maxCustomersOnScreen) {
+                const customerDiv = document.createElement('div');
+                customerDiv.className = 'customer';
+                customerDiv.textContent = '🤔'; // Thinking emoji
+
+                // Random position within game-area boundaries
+                const gameAreaRect = gameArea.getBoundingClientRect();
+                const containerWidth = gameAreaRect.width;
+                const containerHeight = gameAreaRect.height;
+
+                let posX = Math.random() * (containerWidth - CUSTOMER_SIZE);
+                let posY = Math.random() * (containerHeight - CUSTOMER_SIZE);
+
+                customerDiv.style.left = `${posX}px`;
+                customerDiv.style.top = `${posY}px`;
+
+                // Store customer spawn time for patience tracking
+                const customerId = Date.now();
+                customerDiv.dataset.id = customerId;
+                customerDiv.dataset.spawnTime = Date.now();
+                
+                // Add a thought bubble above the customer
+                const thoughtBubble = document.createElement('div');
+                thoughtBubble.className = 'thought-bubble';
+                const customerThoughts = ['Coffee!', 'Something sweet?', 'Quick service!', 'Delicious!', 'What to order?'];
+                thoughtBubble.textContent = customerThoughts[Math.floor(Math.random() * customerThoughts.length)];
+                customerDiv.appendChild(thoughtBubble);
+
+                // Attach click handler to serve customer
+                customerDiv.onclick = () => serveCustomer(customerDiv);
+                gameArea.appendChild(customerDiv);
+                updateUI();
+            }
+        }
+
+        /** Serves a customer, calculates earnings, and removes them. */
+        function serveCustomer(customerDiv) {
+            if (!gameRunning || customerDiv.classList.contains('leaving')) return; // Prevent double-serving
+
+            const spawnTime = parseInt(customerDiv.dataset.spawnTime);
+            const timeElapsed = Date.now() - spawnTime;
+
+            let earnings = customerValue;
+            let thoughtBubbleText = 'Gracias!';
+
+            // Bonus for fast service
+            if (timeElapsed < customerPatience / 3) { // Very fast service
+                earnings *= 1.5; // 50% bonus
+                thoughtBubbleText = 'Excellent!';
+            } else if (timeElapsed < customerPatience / 1.5) { // Fast service
+                earnings *= 1.2; // 20% bonus
+                thoughtBubbleText = 'Bueno!';
+            }
+
+            money += earnings;
+            customersServed++; // Increment total served for final score
+            serveSound.currentTime = 0; // Rewind sound for immediate replay
+            serveSound.play();
+
+            // Visually indicate satisfaction before leaving
+            customerDiv.textContent = '😊'; // Happy emoji
+            customerDiv.classList.add('satisfied');
+            const currentBubble = customerDiv.querySelector('.thought-bubble');
+            if (currentBubble) currentBubble.textContent = thoughtBubbleText;
+
+            // Animate customer leaving
+            customerDiv.classList.add('leaving');
+            setTimeout(() => {
+                customerDiv.remove();
+                updateUI();
+            }, 500); // Wait for leaving animation to complete before removing from DOM
+        }
+
+        /** Checks if any customers have run out of patience and removes them (with penalty). */
+        function checkCustomerPatience() {
+            const customers = gameArea.querySelectorAll('.customer:not(.leaving)'); // Only check active customers
+            customers.forEach(customerDiv => {
+                const spawnTime = parseInt(customerDiv.dataset.spawnTime);
+                if (Date.now() - spawnTime > customerPatience) {
+                    // Customer lost patience
+                    money -= customerValue / 2; // Penalty for lost customer (half value)
+                    if (money < 0) money = 0; // Prevent money from going deeply negative
+
+                    errorSound.currentTime = 0;
+                    errorSound.play();
+
+                    customerDiv.textContent = '😠'; // Angry emoji
+                    customerDiv.classList.add('leaving');
+                     const currentBubble = customerDiv.querySelector('.thought-bubble');
+                     if (currentBubble) currentBubble.textContent = 'Too slow!';
+                    
+                    // Animate customer leaving
+                    setTimeout(() => {
+                        customerDiv.remove();
+                        updateUI();
+                    }, 500);
+                }
+            });
+        }
+
+        /** Populates the shop panel with available upgrades and pets. */
+        function populateShop() {
+            shopItemsContainer.innerHTML = ''; // Clear previous items
+
+            shopItems.forEach(item => {
+                if (item.purchased) return; // Don't show already purchased items
+
+                // Check if prerequisites are met for this item
+                const requiresMet = item.requires ? shopItems.find(i => i.id === item.requires && i.purchased) : true;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'shop-item';
+                itemDiv.innerHTML = `
+                    <h3>${item.icon} ${item.name}</h3>
+                    <p>${item.description}</p>
+                    <p>Cost: 💰${item.cost}</p>
+                    <button id="buy-${item.id}">Buy</button>
+                `;
+                const buyButton = itemDiv.querySelector('button');
+
+                if (!requiresMet) {
+                    buyButton.disabled = true;
+                    buyButton.textContent = `Requires: ${shopItems.find(i => i.id === item.requires).name}`;
+                    buyButton.style.backgroundColor = '#888'; // Grey out button
+                } else if (money < item.cost) {
+                    buyButton.disabled = true;
+                } else {
+                    buyButton.disabled = false;
+                }
+
+                buyButton.onclick = () => buyItem(item);
+                shopItemsContainer.appendChild(itemDiv);
+            });
+        }
+
+        /** Handles purchasing an item from the shop. */
+        function buyItem(item) {
+            if (money >= item.cost) {
+                money -= item.cost;
+                item.purchased = true;
+                item.effect(); // Apply the upgrade/pet's effect
+                buySound.currentTime = 0;
+                buySound.play();
+                updateUI();
+                populateShop(); // Refresh shop display
+            } else {
+                errorSound.currentTime = 0;
+                errorSound.play();
+            }
+        }
+
+        /** Opens the shop panel. */
+        function openShop() {
+            shopPanel.style.display = 'flex';
+            populateShop(); // Always refresh when opening
+        }
+
+        /** Closes the shop panel. */
+        function closeShop() {
+            shopPanel.style.display = 'none';
+        }
+
+        /** Resets all game state variables and prepares for a new game. */
+        function resetGame() {
+            money = 0;
+            customerCount = 0;
+            customersServed = 0;
+            customerSpawnRate = 2000;
+            customerValue = 10;
+            maxCustomersOnScreen = 5;
+            customerPatience = 5000;
+
+            // Reset all shop items to not purchased
+            shopItems.forEach(item => {
+                item.purchased = false;
+            });
+
+            // Clear all customers and pets from the game area
+            gameArea.innerHTML = '';
+            
+            updateUI(); // Reset UI display
+        }
+
+        /** Starts the game. */
+        function startGame() {
+            resetGame(); // Ensure clean slate
+            startScreen.classList.remove('active'); // Hide start screen
+            gameOverScreen.classList.remove('active'); // Hide game over screen
+            gameRunning = true;
+            lastCustomerSpawnTime = Date.now(); // Initialize spawn timer
+
+            // Start background music and catch potential autoplay errors
+            bgMusic.currentTime = 0; 
+            bgMusic.play().catch(e => console.error("Background music auto-play failed, user interaction needed:", e));
+
+            // Begin the main game loop
+            gameLoop();
+        }
+
+        /** Ends the game and displays the game over screen. */
+        function endGame() {
+            gameRunning = false;
+            cancelAnimationFrame(animationFrameId); // Stop the game loop
+            bgMusic.pause(); // Pause music
+            bgMusic.currentTime = 0; // Reset music for next play
+
+            finalScoreDisplay.textContent = customersServed; // Show final score
+            gameOverScreen.classList.add('active'); // Display game over screen
+        }
+
+        /** Main game loop: handles spawning, patience, and UI updates. */
+        function gameLoop() {
+            if (!gameRunning) return; // Stop if game is not running
+
+            const currentTime = Date.now();
+
+            // Attempt to spawn a new customer if enough time has passed
+            if (currentTime - lastCustomerSpawnTime > customerSpawnRate) {
+                spawnCustomer();
+                lastCustomerSpawnTime = currentTime;
+            }
+
+            // Check and handle customers who run out of patience
+            checkCustomerPatience();
+
+            updateUI(); // Refresh UI for money and customer count
+
+            // Request next frame for smooth animation
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Event Listeners ---
+        shopButton.addEventListener('click', openShop);
+        closeShopButton.addEventListener('click', closeShop);
+        startGameButton.addEventListener('click', startGame);
+        restartGameButton.addEventListener('click', startGame);
+
+        // Initial setup when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI(); // Display initial money/customer count
+            shopPanel.style.display = 'none'; // Ensure shop is hidden
+            gameOverScreen.classList.remove('active'); // Ensure game over is hidden
+            startScreen.classList.add('active'); // Show the start screen by default
+        });
+    </script>
+</body>
+</html>
