@@ -41,92 +41,60 @@
   </div>
 
   <script>
-    function setCookie(name, value, days) {
-      const d = new Date();
-      d.setTime(d.getTime() + (days*24*60*60*1000));
-      let expires = "expires=" + d.toUTCString();
-      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    console.log('Script loaded — using localStorage instead of cookies');
+
+    function setStore(key, value) {
+      localStorage.setItem(key, value);
     }
 
-    function getCookie(name) {
-      let decodedCookie = decodeURIComponent(document.cookie);
-      let ca = decodedCookie.split(';');
-      name = name + "=";
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i].trim();
-        if (c.indexOf(name) === 0) {
-          return c.substring(name.length, c.length);
-        }
-      }
-      return "";
+    function getStore(key) {
+      return localStorage.getItem(key);
     }
 
-    const statusEl = document.getElementById("status");
-    const streakEl = document.getElementById("streak");("status");
-    const btn = document.getElementById("trackBtn");
+    const statusEl = document.getElementById('status');
+    const streakEl = document.getElementById('streak');
+    const btn = document.getElementById('trackBtn');
 
     function updateStatus() {
-      const last = getCookie("lastTrack");
-      let streak = parseInt(getCookie("streak")) || 0;
+      console.log('Updating status...');
+      const last = getStore('lastTrack');
+      let streak = parseInt(getStore('streak')) || 0;
 
       if (!last) {
-        streakEl.textContent = "Streak: " + streak + " days";
-        statusEl.textContent = "You haven't Pooped today.";
+        statusEl.textContent = "You haven't pooped today.";
+        streakEl.textContent = 'Streak: ' + streak + ' days';
         btn.disabled = false;
         return;
       }
 
       const lastDate = new Date(parseInt(last));
       const now = new Date();
-
       const sameDay = lastDate.toDateString() === now.toDateString();
 
       if (!sameDay) {
         streak++;
-        setCookie("streak", streak, 30);
+        setStore('streak', streak);
       }
 
-      streakEl.textContent = "Streak: " + streak + " days";
+      streakEl.textContent = 'Streak: ' + streak + ' days';
 
       if (sameDay) {
-        statusEl.textContent = "Already Pooped today at: " + lastDate.toLocaleTimeString();
+        statusEl.textContent = 'Already pooped today at ' + lastDate.toLocaleTimeString();
         btn.disabled = true;
       } else {
-        statusEl.textContent = "You're good to Poop again.";
-        btn.disabled = false;
-      }
-    }() {
-      const last = getCookie("lastTrack");
-
-      if (!last) {
-        statusEl.textContent = "You haven't Pooped today.";
-        btn.disabled = false;
-        return;
-      }
-
-      const lastDate = new Date(parseInt(last));
-      const now = new Date();
-
-      const sameDay = lastDate.toDateString() === now.toDateString();
-
-      if (sameDay) {
-        statusEl.textContent = "Already Pooped today at: " + lastDate.toLocaleTimeString();
-        btn.disabled = true;
-      } else {
-        statusEl.textContent = "You're good to Poop again.";
+        statusEl.textContent = 'You can poop again.';
         btn.disabled = false;
       }
     }
 
-    btn.addEventListener("click", () => {
+    btn.addEventListener('click', () => {
+      console.log('Button clicked');
       const now = Date.now();
-      setCookie("lastTrack", now, 7);
-      setCookie("streak", 0, 30);
+      setStore('lastTrack', now);
+      setStore('streak', 0);
+      statusEl.textContent = 'Tracked!';
       updateStatus();
-    });("click", () => {
-      const now = Date.now();
-      setCookie("lastTrack", now, 7);
-      updateStatus();
+      console.log('Storage now:', localStorage);
     });
 
     updateStatus();
