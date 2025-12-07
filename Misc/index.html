@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Poop Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+    #box {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      min-width: 260px;
+    }
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="box">
+    <h2>Daily Poop Tracker</h2>
+    <p id="streak">Streak: 0 days</p>
+    <p id="status">Checking...</p>
+    <button id="trackBtn">Track Now</button>
+  </div>
+
+  <script>
+    function setCookie(name, value, days) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days*24*60*60*1000));
+      let expires = "expires=" + d.toUTCString();
+      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+
+    function getCookie(name) {
+      let decodedCookie = decodeURIComponent(document.cookie);
+      let ca = decodedCookie.split(';');
+      name = name + "=";
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(name) === 0) {
+          return c.substring(name.length, c.length);
+        }
+      }
+      return "";
+    }
+
+    const statusEl = document.getElementById("status");
+    const streakEl = document.getElementById("streak");("status");
+    const btn = document.getElementById("trackBtn");
+
+    function updateStatus() {
+      const last = getCookie("lastTrack");
+      let streak = parseInt(getCookie("streak")) || 0;
+
+      if (!last) {
+        streakEl.textContent = "Streak: " + streak + " days";
+        statusEl.textContent = "You haven't Pooped today.";
+        btn.disabled = false;
+        return;
+      }
+
+      const lastDate = new Date(parseInt(last));
+      const now = new Date();
+
+      const sameDay = lastDate.toDateString() === now.toDateString();
+
+      if (!sameDay) {
+        streak++;
+        setCookie("streak", streak, 30);
+      }
+
+      streakEl.textContent = "Streak: " + streak + " days";
+
+      if (sameDay) {
+        statusEl.textContent = "Already Pooped today at: " + lastDate.toLocaleTimeString();
+        btn.disabled = true;
+      } else {
+        statusEl.textContent = "You're good to Poop again.";
+        btn.disabled = false;
+      }
+    }() {
+      const last = getCookie("lastTrack");
+
+      if (!last) {
+        statusEl.textContent = "You haven't Pooped today.";
+        btn.disabled = false;
+        return;
+      }
+
+      const lastDate = new Date(parseInt(last));
+      const now = new Date();
+
+      const sameDay = lastDate.toDateString() === now.toDateString();
+
+      if (sameDay) {
+        statusEl.textContent = "Already Pooped today at: " + lastDate.toLocaleTimeString();
+        btn.disabled = true;
+      } else {
+        statusEl.textContent = "You're good to Poop again.";
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener("click", () => {
+      const now = Date.now();
+      setCookie("lastTrack", now, 7);
+      setCookie("streak", 0, 30);
+      updateStatus();
+    });("click", () => {
+      const now = Date.now();
+      setCookie("lastTrack", now, 7);
+      updateStatus();
+    });
+
+    updateStatus();
+  </script>
+</body>
+</html>
