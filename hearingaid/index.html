@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mic Monitor</title>
+</head>
+<body>
+  <button id="start">Start Mic</button>
+
+  <script>
+    const startButton = document.getElementById("start");
+
+    startButton.onclick = async () => {
+      // Create audio context with low-latency hint
+      const audioContext = new AudioContext({
+        latencyHint: "interactive",
+        sampleRate: 48000
+      });
+
+      // Get microphone stream
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
+
+      // Create source from mic
+      const source = audioContext.createMediaStreamSource(stream);
+
+      // Direct connection to speakers
+      source.connect(audioContext.destination);
+
+      startButton.disabled = true;
+      startButton.textContent = "Mic Active";
+    };
+  </script>
+</body>
+</html>
