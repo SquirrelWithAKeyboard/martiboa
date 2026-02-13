@@ -10,7 +10,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marti Boa — Engineering & Tech</title>
 
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
@@ -21,20 +20,22 @@
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
-            background: #0f172a;
-            color: #f1f5f9;
+            background: #f8fafc;
+            color: #1e293b;
         }
 
         header {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            padding: 30px 20px;
+            background: linear-gradient(135deg, #e2e8f0, #f8fafc);
+            padding: 40px 20px;
             text-align: center;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         header h1 {
             margin: 0;
             font-size: 2.5rem;
             font-weight: 800;
+            color: #0f172a;
         }
 
         nav {
@@ -42,7 +43,7 @@
         }
 
         nav a {
-            color: #94a3b8;
+            color: #475569;
             margin: 0 15px;
             text-decoration: none;
             font-weight: 600;
@@ -50,7 +51,7 @@
         }
 
         nav a:hover {
-            color: #38bdf8;
+            color: #0ea5e9;
         }
 
         section {
@@ -63,17 +64,16 @@
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.05);
+            background: white;
             padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
             margin-bottom: 40px;
             transition: 0.3s;
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
         }
 
         h2 {
@@ -82,21 +82,21 @@
         }
 
         p {
-            line-height: 1.6;
-            color: #cbd5e1;
+            line-height: 1.7;
+            color: #334155;
         }
 
         form {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            max-width: 400px;
         }
 
         input[type="email"] {
             padding: 12px;
             border-radius: 10px;
-            border: none;
-            outline: none;
+            border: 1px solid #e2e8f0;
             font-size: 1rem;
         }
 
@@ -107,26 +107,26 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            background: #38bdf8;
-            color: #0f172a;
+            background: #0ea5e9;
+            color: white;
             transition: 0.3s;
         }
 
         button:hover {
-            background: #0ea5e9;
+            background: #0284c7;
             transform: scale(1.03);
         }
 
         footer {
             text-align: center;
             padding: 25px;
-            background: #0f172a;
+            background: #f1f5f9;
             color: #64748b;
-            border-top: 1px solid #1e293b;
+            border-top: 1px solid #e2e8f0;
         }
 
         a {
-            color: #38bdf8;
+            color: #0ea5e9;
         }
 
         @media (max-width: 600px) {
@@ -157,10 +157,13 @@
             <div class="card">
                 <h2>About Me</h2>
                 <p>
-                    Hi, I’m Marti Boa — I build things. Engineering, tech experiments, 3D printing, woodworking, and probably too many side projects.
+                    Hi, I’m Marti Boa — I build things. Engineering projects, tech experiments, 3D printing, and laser cutting.
                 </p>
                 <p>
-                    First blog post dropping soon: woodworking methods + 3D printing insights.
+                    I enjoy designing precise parts for 3D printing and experimenting with laser-cut wood and acrylic to create clean, professional builds.
+                </p>
+                <p>
+                    First blog post coming soon: woodworking methods alongside 3D printing and laser cutting techniques.
                 </p>
             </div>
         </div>
@@ -190,7 +193,7 @@
     </section>
 
     <footer>
-        © 2026 Marti Boa.
+        © 2026 Marti Boa. All rights reserved.
     </footer>
 
 </body>
