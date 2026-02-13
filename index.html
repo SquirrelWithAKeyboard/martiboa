@@ -3,97 +3,140 @@
 
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2091492329531192"
-     crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script>
+
     <link rel="icon" href="favicon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Marti Boa - Personal Website</title>
+    <title>Marti Boa — Engineering & Tech</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            background: #0f172a;
+            color: #f1f5f9;
         }
 
         header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 0;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 30px 20px;
             text-align: center;
         }
 
         header h1 {
             margin: 0;
+            font-size: 2.5rem;
+            font-weight: 800;
         }
 
-        nav ul {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
+        nav {
+            margin-top: 15px;
         }
 
-        nav ul li {
-            display: inline;
+        nav a {
+            color: #94a3b8;
             margin: 0 15px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
         }
 
-        nav ul li a {
-            color: #fff;
-            text-decoration: none;
+        nav a:hover {
+            color: #38bdf8;
         }
 
         section {
-            padding: 20px;
+            padding: 60px 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
-        .about, .newsletter, .contact {
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             margin-bottom: 40px;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-weight: 800;
+        }
+
+        p {
+            line-height: 1.6;
+            color: #cbd5e1;
         }
 
         form {
             display: flex;
             flex-direction: column;
-            max-width: 400px;
-            margin: 0 auto;
+            gap: 15px;
         }
 
         input[type="email"] {
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
         }
 
         button {
-            padding: 10px;
-            background-color: #333;
-            color: #fff;
+            padding: 12px;
+            border-radius: 10px;
             border: none;
-            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
+            background: #38bdf8;
+            color: #0f172a;
+            transition: 0.3s;
         }
 
         button:hover {
-            background-color: #555;
+            background: #0ea5e9;
+            transform: scale(1.03);
         }
 
         footer {
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
             text-align: center;
+            padding: 25px;
+            background: #0f172a;
+            color: #64748b;
+            border-top: 1px solid #1e293b;
         }
 
-        footer a {
-            color: #fff;
-            text-decoration: none;
+        a {
+            color: #38bdf8;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 25px;
+            }
         }
     </style>
 </head>
@@ -101,48 +144,53 @@
 <body>
 
     <header>
-        <div class="container">
-            <h1>Marti Boa</h1>
-            <nav>
-                <ul>
-                    <li><a href="#about">About Me</a></li>
-                    <li><a href="#newsletter">Newsletter</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-        </div>
+        <h1>Marti Boa</h1>
+        <nav>
+            <a href="#about">About</a>
+            <a href="#newsletter">Newsletter</a>
+            <a href="#contact">Contact</a>
+        </nav>
     </header>
 
-    <section id="about" class="about">
+    <section id="about">
         <div class="container">
-            <h2>About Me</h2>
-            <p>Hi, I'm Marti Boa, and welcome to my Engineering Blog website! I have a passion for Squirrels, Engineering and love to explore new technologies. Here, you can sign up for my newsletter to stay updated on new Tech.</p>
-             <p>The First Blog Post Is Coming Soon! And Will Be Discussing Woodwork methods As well as 3D printing.</p>
+            <div class="card">
+                <h2>About Me</h2>
+                <p>
+                    Hi, I’m Marti Boa — I build things. Engineering, tech experiments, 3D printing, woodworking, and probably too many side projects.
+                </p>
+                <p>
+                    First blog post dropping soon: woodworking methods + 3D printing insights.
+                </p>
+            </div>
         </div>
     </section>
 
-    <section id="newsletter" class="newsletter">
+    <section id="newsletter">
         <div class="container">
-            <h2>Sign Up for My Newsletter</h2>
-            <form action="https://formspree.io/f/myzgqjaa" method="POST">
-                <label for="email">Enter your email to subscribe:</label>
-                <input type="email" id="email" name="email" placeholder="yourname@example.com" required>
-                <button type="submit">Sign Up</button>
-            </form>
+            <div class="card">
+                <h2>Join the Newsletter</h2>
+                <form action="https://formspree.io/f/myzgqjaa" method="POST">
+                    <input type="email" name="email" placeholder="yourname@example.com" required>
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
         </div>
     </section>
 
-    <section id="contact" class="contact">
+    <section id="contact">
         <div class="container">
-            <h2>Contact</h2>
-            <p>You can reach me via email: <a href="mailto:johnmartinboa@gmail.com">johnmartinboa@gmail.com</a></p>
+            <div class="card">
+                <h2>Contact</h2>
+                <p>Email me at:
+                    <a href="mailto:johnmartinboa@gmail.com">johnmartinboa@gmail.com</a>
+                </p>
+            </div>
         </div>
     </section>
 
     <footer>
-        <div class="container">
-            <p>&copy; 2024 Marti Boa. All Rights Reserved.</p>
-        </div>
+        © 2026 Marti Boa.
     </footer>
 
 </body>
